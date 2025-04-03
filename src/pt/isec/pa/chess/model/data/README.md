@@ -1,1 +1,12 @@
 ## Data classes
+## Pieces Moves
+
+| Piece     | Common Rules                                                                         | Specific Rules                                                                                                                                                   |
+|-----------|--------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **All**   | - Check game state<br>- Check if position is valid (`column ∈ [a,h]`, `row ∈ [1,8]`) |                                                                                                                                                                  |
+| **Pawn**  |                                                                                      | - Check movement direction (depends on team)<br>- Validate movement depending on pawn's state<br>- Check target cell via board<br>- If valid, update pawn's data |
+| **Bishop**|                                                                                      | - Only moves diagonally<br>- Check cells along diagonal path<br>- If valid, update bishop's data                                                                 |
+| **King**  |                                                                                      | - Moves 1 square in any direction<br>- If not moved yet, can perform Castling<br>- Check destination cell<br>- If valid, update king's data                      |
+| **Knight**|                                                                                      | - Moves in "L" shape (2x1 or 1x2)<br>- Does not require clear path<br>- Check destination cell<br>- If valid, update knight's data                               |
+| **Queen** |                                                                                      | - Moves in straight lines or diagonally<br>- Check all cells along the path<br>- If valid, update queen's data                                                   |
+| **Rook**  |                                                                                      | - Moves only horizontally or vertically<br>- If not moved yet, can participate in Castling<br>- Check all cells along path<br>- If valid, update rook's data     |
