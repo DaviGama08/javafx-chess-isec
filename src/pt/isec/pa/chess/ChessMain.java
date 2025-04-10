@@ -1,34 +1,57 @@
 package pt.isec.pa.chess;
 
-import pt.isec.pa.chess.model.data.*;
+import pt.isec.pa.chess.model.data.Game.Facade;
 import pt.isec.pa.chess.ui.ChessUI;
 
 public class ChessMain {
     public static void main(String[] args) {
-        GameBoard board = new GameBoard();
-        ChessUI ui = new ChessUI(board);
+        Facade facade = new Facade();
+        ChessUI ui = new ChessUI(facade);
+
+        // Definir jogadores
+        facade.setPlayers("Nunes", "Cid");
+
+        System.out.println("=== JOGO INICIADO ===");
+
+        // Mostrar jogador atual e tabuleiro
+        ui.printCurrentPlayer();
+        ui.printBoard();
+
+        // Fazer jogadas de exemplo
+        System.out.println("Movendo peão branco de e2 para e4");
+        ui.move(4, 1, 4, 3); // e2 -> e4
+        ui.printBoard();
+
+        System.out.println("Movendo peão preto de d7 para d5");
+        ui.move(3, 6, 3, 4); // d7 -> d5
+        ui.printBoard();
+
+        // Remover peças para roque (exemplo)
+        ui.removePiece(1, 0); // b1
+        ui.removePiece(2, 0); // c1
+        ui.removePiece(3, 0); // d1
+        ui.printBoard();
+
+        System.out.println("Tentando roque grande (Rei branco e Torre a0)");
+        ui.move(4, 0, 2, 0); // e1 -> c1
+        ui.move(5, 0, 4, 1); // e1 -> c1
+        ui.move(4, 3, 3, 4); // e1 -> c1
 
         ui.printBoard();
-        System.out.println("------------------------------------------------------\n");
-        board.removePiece(board.getPiece('b', 1));
-        board.removePiece(board.getPiece('c', 1));
-        board.removePiece(board.getPiece('d', 1));
-        System.out.println("Peças removidas para liberar o roque queenside (b1, c1 e d1).\n");
-        ui.printBoard();
-        System.out.println("------------------------------------------------------\n");
+        //Testar o save
+        System.out.println("A guardar jogo em 'game.dat'");
+        facade.saveGame();
 
-        move(board, ui, 'e', 1, 'c', 1);
-    }
-
-    private static void move(GameBoard board, ChessUI ui, char fromCol, int fromRow, char toCol, int toRow) {
-        System.out.printf("Movendo de %c%d para %c%d...\n", fromCol, fromRow, toCol, toRow);
-        boolean success = board.movePiece(fromCol, fromRow, toCol, toRow);
-        if (!success) {
-            System.out.println(">> ERRO: " + board.getLastError());
-        } else {
-            System.out.println("Movimento realizado com sucesso!");
+        // Testar o load
+        System.out.println("A carregar jogo de 'game.dat'");
+        boolean loaded = facade.loadGame();
+        if (loaded) {
+            System.out.println("Jogo carregado com sucesso.");
             ui.printBoard();
+        } else {
+            System.out.println("Falha ao carregar jogo.");
         }
-        System.out.println("------------------------------------------------------\n");
+
+        System.out.println("=== FIM ===");
     }
 }

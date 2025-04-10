@@ -1,6 +1,9 @@
 package pt.isec.pa.chess.model.data;
 
+import pt.isec.pa.chess.model.data.Pieces.GameBoard;
+
 public interface IPlayable {
-    boolean isInvalidMove(char newColumn, int newRow, GameBoard board);
-    void updatePosition(char newColumn, int newRow);
+
+    boolean move(int newCol, int newRow, GameBoard board);
+    boolean isValidMove(int newColumn, int newRow, GameBoard board);
 }

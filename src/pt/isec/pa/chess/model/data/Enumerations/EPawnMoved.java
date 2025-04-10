@@ -1,4 +1,4 @@
-package pt.isec.pa.chess.model.data;
+package pt.isec.pa.chess.model.data.Enumerations;
 
 public enum EPawnMoved {
     NEVER,

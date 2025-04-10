@@ -1,4 +1,4 @@
-package pt.isec.pa.chess.model.data;
+package pt.isec.pa.chess.model.data.Enumerations;
 
 //TODO: Provisory ENUM UNTIL IMPLEMENT FSM
 public enum EChessState {
@@ -9,5 +9,4 @@ public enum EChessState {
     DRAW_BY_REPETITION,
     DRAW_BY_FIFTY_MOVES,
     DRAW_BY_INSUFFICIENT_MATERIAL
-
 }
