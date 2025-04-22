@@ -1,57 +1,61 @@
 package pt.isec.pa.chess;
 
-import pt.isec.pa.chess.model.data.Game.Facade;
+import javafx.application.Application;
+import pt.isec.pa.chess.model.data.Game.ChessGameManager;
 import pt.isec.pa.chess.ui.ChessUI;
+import pt.isec.pa.chess.ui.MainJFX;
 
 public class ChessMain {
     public static void main(String[] args) {
-        Facade facade = new Facade();
-        ChessUI ui = new ChessUI(facade);
+        Application.launch(MainJFX.class, args);
+
+        ChessGameManager chessGameManager = new ChessGameManager();
+        ChessUI ui = new ChessUI(chessGameManager);
 
         // Definir jogadores
-        facade.setPlayers("Nunes", "Cid");
+        chessGameManager.setPlayers("Nunes", "Cid");
 
         System.out.println("=== JOGO INICIADO ===");
-
-        // Mostrar jogador atual e tabuleiro
         ui.printCurrentPlayer();
         ui.printBoard();
 
-        // Fazer jogadas de exemplo
-        System.out.println("Movendo peão branco de e2 para e4");
-        ui.move(4, 1, 4, 3); // e2 -> e4
+        // Fazer algumas jogadas de exemplo
+        System.out.println("Movendo peão branco de e2 para e4 (col=4, row=1 -> col=4, row=3)");
+        ui.move(4, 1, 4, 3);
         ui.printBoard();
 
-        System.out.println("Movendo peão preto de d7 para d5");
-        ui.move(3, 6, 3, 4); // d7 -> d5
+        System.out.println("Movendo peão preto de d7 para d5 (col=3, row=6 -> col=3, row=4)");
+        ui.move(3, 6, 3, 4);
         ui.printBoard();
 
-        // Remover peças para roque (exemplo)
-        ui.removePiece(1, 0); // b1
-        ui.removePiece(2, 0); // c1
-        ui.removePiece(3, 0); // d1
-        ui.printBoard();
+        // 1) Salvar o jogo atual no arquivo "game.txt"
+        System.out.println("\n==> Exportando jogo para 'game.txt'...");
+        boolean exportOk = chessGameManager.exportGame();
+        if (!exportOk) {
+            System.out.println("Falha ao exportar o jogo.");
+        }
 
-        System.out.println("Tentando roque grande (Rei branco e Torre a0)");
-        ui.move(4, 0, 2, 0); // e1 -> c1
-        ui.move(5, 0, 4, 1); // e1 -> c1
-        ui.move(4, 3, 3, 4); // e1 -> c1
+        // 2) Remover todas as peças usando removePiece diretamente
+        System.out.println("\n==> Removendo todas as peças do tabuleiro...");
+        for (int row = 0; row < 8; row++) {
+            for (int col = 0; col < 8; col++) {
+                ui.removePiece(col, row);
+            }
+        }
+        ui.printBoard(); // Tabuleiro deve ficar vazio
 
-        ui.printBoard();
-        //Testar o save
-        System.out.println("A guardar jogo em 'game.dat'");
-        facade.saveGame();
-
-        // Testar o load
-        System.out.println("A carregar jogo de 'game.dat'");
-        boolean loaded = facade.loadGame();
-        if (loaded) {
-            System.out.println("Jogo carregado com sucesso.");
+        // 3) Importar o jogo de "game.txt" para restaurar o estado
+        System.out.println("\n==> Importando jogo de 'game.txt'...");
+        boolean importOk = chessGameManager.importGame();
+        if (importOk) {
+            System.out.println("Jogo importado com sucesso. Tabuleiro restaurado:");
             ui.printBoard();
         } else {
-            System.out.println("Falha ao carregar jogo.");
+            System.out.println("Falha ao importar o jogo.");
         }
 
         System.out.println("=== FIM ===");
+
+
     }
 }

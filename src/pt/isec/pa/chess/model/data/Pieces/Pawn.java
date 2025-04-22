@@ -29,15 +29,7 @@ public class Pawn extends Piece{
                 return false;
             }
 
-            if (destPiece != null) {
-                if (destPiece.isWhiteTeam == this.isWhiteTeam) {
-                    board.setLastError("Destino ocupado pela própria equipa: " + destColumn + destRow);
-                    return false;
-                }
-                board.removePiece(destPiece);
-            }
-            board.board.get(pos.getRow()).set(pos.getCol(), null);
-            updatePosition(destColumn, destRow);
+            board.movePieceOnBoard(this, destColumn, destRow);
             return true;
         }
         return false;
@@ -87,7 +79,6 @@ public class Pawn extends Piece{
 
             if (rowDiff == 2 * direction)
                 return board.getPiece(srcCol, sourceRow + direction) == null;
-
             return true;
         }
 
@@ -96,7 +87,9 @@ public class Pawn extends Piece{
                 if(destPiece.isWhiteTeam == this.isWhiteTeam)
                     return false;
                 board.removePiece(destPiece);
+                board.board.get(pos.getRow()).set(pos.getCol(), null);
                 updatePosition(destCol, destRow);
+                board.movePieceOnBoard(this, destCol, destRow);
                 return true;
             }
 
@@ -109,7 +102,7 @@ public class Pawn extends Piece{
                         sidePawn.isWhiteTeam != this.isWhiteTeam &&
                         sidePawn.getPawnStatus() == EPawnMoved.ONCE) {
                     board.removePiece(sidePawn);
-                    //board.movePieceOnBoard(sidePawn, sidePawn.pos.getCol(), sidePawn.pos.getRow());
+                    board.board.get(sidePawn.pos.getRow()).set(sidePawn.pos.getCol(), null);
                     return true;
                 }
             }

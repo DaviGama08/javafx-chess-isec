@@ -48,15 +48,14 @@ abstract public class Piece implements IPlayable, Serializable {
     }
 
     // ####### Getters #######
-
-
     public int getColumn() {
         return pos.getCol();
     }
-
     public int getRow() {
         return pos.getRow();
     }
+    public boolean isWhiteTeam() {return isWhiteTeam;}
+    public EPieceType getEPieceType() {return ePieceType;}
 
     public List<Position> getValidMoves(GameBoard board){
         List<Position> validMoves = new ArrayList<>();

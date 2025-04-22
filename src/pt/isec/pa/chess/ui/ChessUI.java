@@ -1,14 +1,14 @@
 package pt.isec.pa.chess.ui;
 
-import pt.isec.pa.chess.model.data.Game.Facade;
+import pt.isec.pa.chess.model.data.Game.ChessGameManager;
 import pt.isec.pa.chess.model.data.Game.PlayerData;
 import pt.isec.pa.chess.model.data.Pieces.GameBoard;
 import pt.isec.pa.chess.model.data.Pieces.Piece;
 
 public class ChessUI {
-    private final Facade facade;
+    private final ChessGameManager facade;
 
-    public ChessUI(Facade facade) {
+    public ChessUI(ChessGameManager facade) {
         this.facade = facade;
     }
 

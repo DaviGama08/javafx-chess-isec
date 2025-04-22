@@ -1,16 +1,17 @@
 package pt.isec.pa.chess.model.data.Game;
 
 import pt.isec.pa.chess.model.data.Enumerations.EChessState;
+import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
 import pt.isec.pa.chess.model.data.Pieces.GameBoard;
 
-public class Facade {
+import java.io.IOException;
+
+public class ChessGameManager {
     private final String PATH = "game.dat";
     private ChessGame game;
-    //private final ChessUI ui;
 
-    public Facade() {
+    public ChessGameManager() {
         this.game = new ChessGame();
-        //this.ui = new ChessUI(this);
     }
 
     public boolean movePiece(int sourceColumn, int sourceRow, int destColumn, int destRow){
@@ -42,13 +43,27 @@ public class Facade {
         return game.gameOver();
     }
 
-    public void saveGame() {
+    public void saveGame() throws IOException {
         ChessGameSerialization.saveGame(game, PATH);
     }
 
-    public boolean loadGame() {
+    public boolean loadGame() throws IOException, ClassNotFoundException {
         this.game = ChessGameSerialization.loadGame(PATH);
         return game != null;
     }
 
+    public boolean exportGame(){
+        return game.exportGameState();
+    }
+    public boolean importGame(){
+        return game.importGameState();
+    }
+
+    public Position validatePawnPromotion(){
+        return game.validatePawnPromotion();
+    }
+
+    public boolean promotePawn(Position pos, EPieceType newType){
+        return game.promotePawn(pos, newType);
+    }
 }

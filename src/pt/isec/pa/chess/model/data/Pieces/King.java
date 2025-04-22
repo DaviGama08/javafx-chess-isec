@@ -3,7 +3,7 @@ package pt.isec.pa.chess.model.data.Pieces;
 import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
 import pt.isec.pa.chess.model.data.IPlayable;
 
-public class King extends Piece implements IPlayable {
+public class King extends Piece{
     public King(boolean isWhiteTeam, int column, int row) {
         super(isWhiteTeam ? 'K' : 'k', column, row, isWhiteTeam, EPieceType.KING);
     }
@@ -47,6 +47,7 @@ public class King extends Piece implements IPlayable {
                 board.movePieceOnBoard(rook, rookDestCol, pos.getRow());
                 board.movePieceOnBoard(this, destColumn, destRow);
                 board.board.get(pos.getRow()).set(pos.getCol(), null);
+                board.movePieceOnBoard(this, destColumn, destRow);
                 updatePosition(destColumn, destRow);
                 return true;
             }
@@ -54,6 +55,7 @@ public class King extends Piece implements IPlayable {
             if (destPiece != null)
                 board.removePiece(destPiece);
             board.board.get(pos.getRow()).set(pos.getCol(), null);
+            board.movePieceOnBoard(this, destColumn, destRow);
             updatePosition(destColumn, destRow);
             return true;
         }

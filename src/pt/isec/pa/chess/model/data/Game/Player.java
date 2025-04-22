@@ -32,11 +32,7 @@ public class Player implements Cloneable, Serializable {
     @Override
     public Player clone() {
         try {
-            Player copy = (Player) super.clone();
-            copy.setPlays(plays);
-            copy.setScore(score);
-            copy.setWins(wins);
-            return copy;
+            return (Player) super.clone();
         } catch (CloneNotSupportedException e) {
             throw new AssertionError();
         }

@@ -2,6 +2,7 @@ package pt.isec.pa.chess.model.data.Pieces;
 
 import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
 import pt.isec.pa.chess.model.data.Factories.PieceFactory;
+import pt.isec.pa.chess.model.data.Game.Position;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -108,7 +109,7 @@ public class GameBoard implements Serializable {
     }
 
     public boolean movePiece(int sourceColumn, int sourceRow, int destColumn, int destRow) {
-        if (isInvalidPosition(sourceColumn, sourceRow)) {
+        if (isInvalidPosition(sourceColumn, sourceRow)) {   
             lastError = "Source Position Invalid: " + sourceColumn + " " + sourceRow;
             return false;
         }
@@ -127,8 +128,6 @@ public class GameBoard implements Serializable {
             lastError = "Movimento inválido da peça";
             return false;
         }
-
-        movePieceOnBoard(piece, destColumn, destRow);
         return true;
     }
     public void addPiece(Piece piece) {
@@ -166,4 +165,40 @@ public class GameBoard implements Serializable {
     public void setLastError(String e){
         this.lastError = e;
     }
+
+    public Position validatePawnPromotion() {
+        for (int col = 0; col < NUM_COLS; col++) {
+            Piece piece = getPiece(col, 7);
+            if (piece != null && piece.getEPieceType() == EPieceType.PAWN && piece.isWhiteTeam()) {
+                return new Position(col, 7);
+            }
+        }
+
+        for (int col = 0; col < NUM_COLS; col++) {
+            Piece piece = getPiece(col, 0);
+            if (piece != null && piece.getEPieceType() == EPieceType.PAWN && !piece.isWhiteTeam()) {
+                return new Position(col, 0);
+            }
+        }
+        return null;
+    }
+
+    public boolean promotePawn(Position pos, EPieceType newType) {
+        if (isInvalidPosition(pos.getCol(), pos.getRow())) {
+            return false;
+        }
+
+        Piece pawn = getPiece(pos.getCol(), pos.getRow());
+        if (pawn == null || pawn.getEPieceType() != EPieceType.PAWN) {
+            return false;
+        }
+
+        removePiece(pawn);
+
+        Piece nova = PieceFactory.createPiece(newType, pawn.isWhiteTeam(), pos.getCol(), pos.getRow());
+
+        addPiece(nova);
+        return true;
+    }
+
 }
