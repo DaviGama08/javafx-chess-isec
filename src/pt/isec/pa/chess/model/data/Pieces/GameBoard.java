@@ -3,13 +3,14 @@ package pt.isec.pa.chess.model.data.Pieces;
 import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
 import pt.isec.pa.chess.model.data.Factories.PieceFactory;
 import pt.isec.pa.chess.model.data.Game.Position;
+import pt.isec.pa.chess.model.data.Game.PositionData;
 
 import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GameBoard implements Serializable {
+public class GameBoard implements Serializable, Cloneable {
     @Serial
     private static final long serialVersionUID = 1L;
     public static final int NUM_ROWS = 8;
@@ -17,62 +18,54 @@ public class GameBoard implements Serializable {
 
     private String lastError = "";
 
-    public final List<List<Piece>> board;
+    public final List<Piece> pieces = new ArrayList<>();
 
     public GameBoard() {
-        board = new ArrayList<>(NUM_ROWS);
-        for (int i = 0; i < NUM_ROWS; i++) {
-            List<Piece> row = new ArrayList<>(NUM_COLS);
-            for (int j = 0; j < NUM_COLS; j++) {
-                row.add(null);
-            }
-            board.add(row);
-        }
+        pieces.clear();
         initializePieces();
     }
 
     public void initializePieces() {
         // White Pieces
-        createPiece(EPieceType.ROOK    , true,  0, 0);
-        createPiece(EPieceType.KNIGHT  , true,  1, 0);
-        createPiece(EPieceType.BISHOP  , true,  2, 0);
-        createPiece(EPieceType.QUEEN   , true,  3, 0);
-        createPiece(EPieceType.KING    , true,  4, 0);
-        createPiece(EPieceType.BISHOP  , true,  5, 0);
-        createPiece(EPieceType.KNIGHT  , true,  6, 0);
-        createPiece(EPieceType.ROOK    , true,  7, 0);
+        pieces.add(PieceFactory.createPiece(EPieceType.ROOK,   true, 0, 0));
+        pieces.add(PieceFactory.createPiece(EPieceType.KNIGHT, true, 1, 0));
+        pieces.add(PieceFactory.createPiece(EPieceType.BISHOP, true, 2, 0));
+        pieces.add(PieceFactory.createPiece(EPieceType.QUEEN,  true, 3, 0));
+        pieces.add(PieceFactory.createPiece(EPieceType.KING,   true, 4, 0));
+        pieces.add(PieceFactory.createPiece(EPieceType.BISHOP, true, 5, 0));
+        pieces.add(PieceFactory.createPiece(EPieceType.KNIGHT, true, 6, 0));
+        pieces.add(PieceFactory.createPiece(EPieceType.ROOK,   true, 7, 0));
 
-        for (int col = 0; col <= 7; col++)
-            createPiece(EPieceType.PAWN, true, col, 1);
+        for (int col = 0; col < NUM_COLS; col++) {
+            pieces.add(PieceFactory.createPiece(EPieceType.PAWN, true, col, 1));
+        }
 
         // Black Pieces
-        createPiece(EPieceType.ROOK    , false, 0, 7);
-        createPiece(EPieceType.KNIGHT  , false, 1, 7);
-        createPiece(EPieceType.BISHOP  , false, 2, 7);
-        createPiece(EPieceType.QUEEN   , false, 3, 7);
-        createPiece(EPieceType.KING    , false, 4, 7);
-        createPiece(EPieceType.BISHOP  , false, 5, 7);
-        createPiece(EPieceType.KNIGHT  , false, 6, 7);
-        createPiece(EPieceType.ROOK    , false, 7, 7);
+        pieces.add(PieceFactory.createPiece(EPieceType.ROOK,   false, 0, 7));
+        pieces.add(PieceFactory.createPiece(EPieceType.KNIGHT, false, 1, 7));
+        pieces.add(PieceFactory.createPiece(EPieceType.BISHOP, false, 2, 7));
+        pieces.add(PieceFactory.createPiece(EPieceType.QUEEN,  false, 3, 7));
+        pieces.add(PieceFactory.createPiece(EPieceType.KING,   false, 4, 7));
+        pieces.add(PieceFactory.createPiece(EPieceType.BISHOP, false, 5, 7));
+        pieces.add(PieceFactory.createPiece(EPieceType.KNIGHT, false, 6, 7));
+        pieces.add(PieceFactory.createPiece(EPieceType.ROOK,   false, 7, 7));
 
-        for (int col = 0; col <= 7; col++)
-            createPiece(EPieceType.PAWN, false, col, 6);
-
+        for (int col = 0; col < NUM_COLS; col++) {
+            pieces.add(PieceFactory.createPiece(EPieceType.PAWN, false, col, 6));
+        }
 
     }
 
-    public boolean createPiece(EPieceType type, boolean isWhiteTeam, int col, int row) {
-        if (isInvalidPosition(col, row)){
-            lastError = "Posição inválida para criação da peça "+type+" "+col+" "+row;
-            return false;
+    public void createPiece(EPieceType type, boolean isWhiteTeam, int col, int row) {
+        if (isInvalidPosition(col, row)) {
+            lastError = "Invalid position for piece creation: " + col + "," + row;
+            return;
         }
-
-        if (board.get(row).get(col) != null) {
-            lastError = "Posição já ocupada: " + col + " " + row;
-            return false;
+        if (getPiece(col, row) != null) {
+            lastError = "Position already occupied: " + col + "," + row;
+            return;
         }
-        board.get(row).set(col, PieceFactory.createPiece(type , isWhiteTeam, col, row));
-        return true;
+        pieces.add(PieceFactory.createPiece(type, isWhiteTeam, col, row));
     }
 
     public boolean isInvalidPosition(int col, int row) {
@@ -83,7 +76,11 @@ public class GameBoard implements Serializable {
         if (isInvalidPosition(col, row))
             return null;
 
-        return board.get(row).get(col);
+        for (Piece p : pieces) {
+            if (p.getColumn()==col && p.getRow()==row)
+                return p;
+        }
+        return null;
     }
 
     public boolean isPathClear(int srcColumn, int srcRow, int destColumn, int destRow) {
@@ -93,15 +90,11 @@ public class GameBoard implements Serializable {
         if (rowDiff == 0 || colDiff == 0 || Math.abs(rowDiff) == Math.abs(colDiff)) {
             int stepRow = Integer.signum(rowDiff);
             int stepCol = Integer.signum(colDiff);
-            int currentRow = srcRow + stepRow;
-            int currentCol = srcColumn + stepCol;
-
-            while (currentRow != destRow || currentCol != destColumn) {
-                if (board.get(currentRow).get(currentCol) != null) {
-                    return false;
-                }
-                currentRow += stepRow;
-                currentCol += stepCol;
+            int r = srcRow + stepRow, c = srcColumn + stepCol;
+            while (r != destRow || c != destColumn) {
+                if (getPiece(c, r) != null) return false;
+                r += stepRow;
+                c += stepCol;
             }
             return true;
         }
@@ -109,7 +102,7 @@ public class GameBoard implements Serializable {
     }
 
     public boolean movePiece(int sourceColumn, int sourceRow, int destColumn, int destRow) {
-        if (isInvalidPosition(sourceColumn, sourceRow)) {   
+        if (isInvalidPosition(sourceColumn, sourceRow)) {
             lastError = "Source Position Invalid: " + sourceColumn + " " + sourceRow;
             return false;
         }
@@ -130,34 +123,23 @@ public class GameBoard implements Serializable {
         }
         return true;
     }
-    public void addPiece(Piece piece) {
-        int row = piece.getRow();
-        int col = piece.getColumn();
 
-        if (isInvalidPosition(col, row)) {
-            lastError = "Posição inválida para a peça: col=" + col + ", row=" + row;
+    public void addPiece(Piece p) {
+        if (getPiece(p.getColumn(),p.getRow())!=null) {
+            lastError = "Posição já ocupada";
             return;
         }
-
-        if (board.get(row).get(col) != null) {
-            lastError = "Posição já ocupada: col=" + col + ", row=" + row;
-            return;
-        }
-
-        board.get(row).set(col, piece);
+        pieces.add(p);
     }
 
     public void removePiece(Piece piece) {
-        board.get(piece.getRow()).set(piece.getColumn(), null);
+        pieces.remove(piece);
     }
 
     public void movePieceOnBoard(Piece piece, int newColumn, int newRow) {
-        board.get(piece.getRow()).set(piece.getColumn(), null);
-
         piece.updatePosition(newColumn, newRow);
-
-        board.get(newRow).set(newColumn, piece);
     }
+
     public String getLastError(){
         return lastError;
     }
@@ -166,18 +148,18 @@ public class GameBoard implements Serializable {
         this.lastError = e;
     }
 
-    public Position validatePawnPromotion() {
+    public PositionData validatePawnPromotion() {
         for (int col = 0; col < NUM_COLS; col++) {
             Piece piece = getPiece(col, 7);
             if (piece != null && piece.getEPieceType() == EPieceType.PAWN && piece.isWhiteTeam()) {
-                return new Position(col, 7);
+                return new PositionData(col, 7);
             }
         }
 
         for (int col = 0; col < NUM_COLS; col++) {
             Piece piece = getPiece(col, 0);
             if (piece != null && piece.getEPieceType() == EPieceType.PAWN && !piece.isWhiteTeam()) {
-                return new Position(col, 0);
+                return new PositionData(col, 0);
             }
         }
         return null;
@@ -201,4 +183,24 @@ public class GameBoard implements Serializable {
         return true;
     }
 
+    public boolean doesKingExist(boolean isWhiteTeam) {
+        for (Piece p : pieces) {
+            if (p.getEPieceType() == EPieceType.KING && p.isWhiteTeam() == isWhiteTeam) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override public GameBoard clone() {
+        GameBoard copy = new GameBoard();
+        copy.pieces.clear();
+        for (Piece p : pieces)
+            copy.pieces.add(PieceFactory.createPiece(
+                    p.getEPieceType(), p.isWhiteTeam(), p.getColumn(), p.getRow()));
+        return copy;
+    }
+
+    public int getNumRows() { return NUM_ROWS; }
+    public int getNumCols() { return NUM_COLS; }
 }

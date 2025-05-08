@@ -87,9 +87,8 @@ public class Pawn extends Piece{
                 if(destPiece.isWhiteTeam == this.isWhiteTeam)
                     return false;
                 board.removePiece(destPiece);
-                board.board.get(pos.getRow()).set(pos.getCol(), null);
-                updatePosition(destCol, destRow);
                 board.movePieceOnBoard(this, destCol, destRow);
+                updatePosition(destCol, destRow);
                 return true;
             }
 
@@ -102,7 +101,7 @@ public class Pawn extends Piece{
                         sidePawn.isWhiteTeam != this.isWhiteTeam &&
                         sidePawn.getPawnStatus() == EPawnMoved.ONCE) {
                     board.removePiece(sidePawn);
-                    board.board.get(sidePawn.pos.getRow()).set(sidePawn.pos.getCol(), null);
+                    board.movePieceOnBoard(this, destCol, destRow);
                     return true;
                 }
             }

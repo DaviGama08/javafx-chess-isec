@@ -1,5 +1,6 @@
 package pt.isec.pa.chess.ui;
 
+import javafx.scene.control.Alert;
 import pt.isec.pa.chess.model.data.Game.ChessGameManager;
 import pt.isec.pa.chess.model.data.Game.PlayerData;
 import pt.isec.pa.chess.model.data.Pieces.GameBoard;
@@ -20,22 +21,31 @@ public class ChessUI {
     }
 
     public void printBoard() {
-        GameBoard b = facade.getBoard();
-        System.out.print("   ");
-        for (char c = 'a'; c < 'a' + GameBoard.NUM_COLS; c++) {
-            System.out.printf("%-8c", c);
-        }
-        System.out.println();
-        for (int row = GameBoard.NUM_ROWS - 1; row >= 0; row--) {
-            System.out.printf("%2d ", row + 1);
-            for (int col = 0; col < GameBoard.NUM_COLS; col++) {
-                Piece p = b.getPiece(col, row);
-                String s = p == null ? "    " : p.toString();
-                System.out.printf("%-8s", "[" + s + "]");
+        try {
+            GameBoard b = facade.getBoard();
+
+            System.out.print("   ");
+            for (char c = 'a'; c < 'a' + GameBoard.NUM_COLS; c++) {
+                System.out.printf("%-8c", c);
             }
             System.out.println();
+            for (int row = GameBoard.NUM_ROWS - 1; row >= 0; row--) {
+                System.out.printf("%2d ", row + 1);
+                for (int col = 0; col < GameBoard.NUM_COLS; col++) {
+                    Piece p = b.getPiece(col, row);
+                    String s = p == null ? "    " : p.toString();
+                    System.out.printf("%-8s", "[" + s + "]");
+                }
+                System.out.println();
+            }
+            System.out.println();
+        } catch (Exception e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Error getting board");
+            alert.setContentText("Error trying to get the board.\n" + e.getMessage());
+            alert.showAndWait();
         }
-        System.out.println();
     }
 
     public boolean move(int sc, int sr, int dc, int dr) {
@@ -49,12 +59,20 @@ public class ChessUI {
     }
 
     public void removePiece(int c, int r) {
-        Piece p = facade.getBoard().getPiece(c, r);
-        if (p == null) {
-            System.out.println("Nenhuma peca em " + (char) ('a' + c) + (r + 1));
-        } else {
-            facade.getBoard().removePiece(p);
-            System.out.println("Removida peca " + p + " de " + (char) ('a' + c) + (r + 1));
+        try {
+            Piece p = facade.getBoard().getPiece(c, r);
+            if (p == null) {
+                System.out.println("Nenhuma peca em " + (char) ('a' + c) + (r + 1));
+            } else {
+                facade.getBoard().removePiece(p);
+                System.out.println("Removida peca " + p + " de " + (char) ('a' + c) + (r + 1));
+            }
+        } catch (Exception e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Error removing piece");
+            alert.setContentText("Error trying to remove the piece.\n" + e.getMessage());
+            alert.showAndWait();
         }
     }
 }

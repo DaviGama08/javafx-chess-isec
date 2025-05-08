@@ -1,116 +1,158 @@
 package pt.isec.pa.chess.ui;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import pt.isec.pa.chess.model.data.Game.ChessGame;
+import javafx.scene.layout.Pane;
+import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
+import pt.isec.pa.chess.model.data.Enumerations.ETeamColor;
 import pt.isec.pa.chess.model.data.Game.ChessGameManager;
-
-import java.io.IOException;
+import pt.isec.pa.chess.model.data.Game.PlayerData;
+import pt.isec.pa.chess.model.data.Game.Position;
+import pt.isec.pa.chess.model.data.Game.PositionData;
 
 public class RootPane extends BorderPane { //View-Controller
     ChessGameManager facade;
-    private MenuBar menuBar;
-    private MenuItem newGame, openGame, saveGame, importGame, exportGame, quitGame;
-    private MenuItem normalMode, LearningMode, listOfMoves, undoMove, redoMove;
-    // variables, including reference to views
-    Label lbExample,lbCounter;
-    TextField tfExample;
-    Button btnExample;
+    BoardCanvas boardCanvas;
+    MenuUI menuBar;
+
+    HBox statusBar;
+    Label lblWhite, lblBlack, lblTurn;
 
     public RootPane(ChessGameManager facade) {
         this.facade = facade;
-
+        this.menuBar = new MenuUI(facade, this);
         createViews();
         registerHandlers();
-        update();
     }
 
     private void createViews() {
+        setTop(menuBar.createMenu());
 
-        menuBar = new MenuBar();
+        boardCanvas = new BoardCanvas(facade,this::update);
+        /*  começa bloqueado – só é libertado depois de New game  */
+        boardCanvas.setDisable(true);
 
-        Menu gameMenu = new Menu("Game");
-        newGame = new MenuItem("New");
-        openGame = new MenuItem("Open");
-        saveGame = new MenuItem("Save");
-        importGame = new MenuItem("Import");
-        exportGame = new MenuItem("Export");
-        quitGame = new MenuItem("Quit");
+        Pane areaPane = new Pane(boardCanvas);
+        setCenter(areaPane);
 
-        Menu modeMenu = new Menu("Mode");
-        normalMode = new MenuItem("Normal");
+        lblWhite = new Label("White: –");
+        lblBlack = new Label("Black: –");
+        lblTurn  = new Label("Turn: –");
 
-        Menu learningSubMenu = new Menu("Learning");
-        listOfMoves = new MenuItem("List of Moves");
-        undoMove = new MenuItem("Undo Move");
-        redoMove = new MenuItem("Redo Move");
+        lblWhite.setStyle("-fx-font-weight: bold;");
+        lblBlack.setStyle("-fx-font-weight: bold;");
+        lblTurn .setStyle("-fx-font-weight: bold;");
 
-        gameMenu.getItems().addAll(newGame, openGame, saveGame, importGame, exportGame, new SeparatorMenuItem(), quitGame);
-        learningSubMenu.getItems().addAll(listOfMoves, undoMove, redoMove);
-        modeMenu.getItems().addAll(normalMode, learningSubMenu);
+        statusBar = new HBox(20, lblWhite, lblBlack, lblTurn);
+        statusBar.setAlignment(Pos.CENTER);
+        statusBar.setPadding(new Insets(5));
 
-        menuBar.getMenus().add(gameMenu);
-        menuBar.getMenus().add(modeMenu);
-        this.setTop(menuBar);
+        setBottom(statusBar);
 
-        HBox content = new HBox(10);
-        content.setPadding(new Insets(16));
-        content.setAlignment(Pos.BASELINE_LEFT);
-
-        lbExample = new Label("Name:");
-        tfExample = new TextField();
-        btnExample = new Button("Confirm");
-        lbCounter = new Label();
-        lbCounter.setStyle("-fx-font-family: 'Courier New'; -fx-background-color: #c0c0ff;");
-
-        content.getChildren().addAll(lbExample, tfExample, btnExample, lbCounter);
-        this.setCenter(content);
+        areaPane.widthProperty().addListener( obs ->
+                boardCanvas.updateSize(areaPane.getWidth(), areaPane.getHeight()) );
+        areaPane.heightProperty().addListener( obs ->
+                boardCanvas.updateSize(areaPane.getWidth(), areaPane.getHeight()) );
     }
 
     private void registerHandlers() {
-        /* handlers/listeners */
-        btnExample.setOnAction(actionEvent -> {
-            System.out.println(tfExample.getText());
-            update();
+
+        menuBar.getNewGame().setOnAction(e -> {
+            menuBar.newGame();
         });
 
-        newGame.setOnAction(e -> {
-            System.out.println("New Game.");
+        menuBar.getOpenGame().setOnAction(e -> {
+            menuBar.openGame();
         });
 
-        openGame.setOnAction(e -> {
-            System.out.println("Open Game.");
+        menuBar.getSaveGame().setOnAction(e -> {
+            menuBar.saveGame();
         });
 
-        saveGame.setOnAction(e -> {
-            try {
-                facade.saveGame();
-            } catch (IOException ex) {
-                Alert alert = new Alert(Alert.AlertType.ERROR);
-                alert.setTitle("Error");
-                alert.setHeaderText("Not possible to save game.");
-                alert.setContentText(ex.getMessage()); // ou uma mensagem mais amigável
-                alert.showAndWait();
-            }
-        });
-
-        importGame.setOnAction(e -> {
+        menuBar.getImportGame().setOnAction(e -> {
             facade.importGame();
         });
 
-        exportGame.setOnAction(e -> {
+        menuBar.getExportGame().setOnAction(e -> {
             facade.exportGame();
         });
 
-        quitGame.setOnAction(e -> {
+        menuBar.getQuitGame().setOnAction(e -> {
             System.exit(0);
         });
     }
 
-    private void update() {
-        // Update
+    public void update() {
+        try {
+            boardCanvas.draw();
+            // AINDA NAO HA JOGADORES
+            PlayerData cur = facade.getCurrentPlayer();
+            if (cur == null) {
+                lblWhite.setText("White: –");
+                lblBlack.setText("Black: –");
+                lblTurn .setText("Turn:  –");
+                return;
+            }
+
+            //NOME DOS JOGADOR PRETO E BRANCO | NOME DO JOGADOR ATUAL
+            PlayerData current = facade.getCurrentPlayer();
+            lblWhite.setText("White: " + (facade.getPlayerName(ETeamColor.WHITE_TEAM)));
+            lblBlack.setText("Black: " + (facade.getPlayerName(ETeamColor.BLACK_TEAM)));
+            lblTurn .setText("Turn:  " + current.name() + " (" + current.team() + ")");
+
+            PositionData pp = facade.validatePawnPromotion();
+            if (pp != null) {
+                Dialog<EPieceType> dlg = new Dialog<>();
+                dlg.setTitle("Promoção de Peão");
+                dlg.setHeaderText("Escolha a peça para promoção:");
+
+                ButtonType btQ = new ButtonType("Dama",  ButtonBar.ButtonData.OK_DONE);
+                ButtonType btR = new ButtonType("Torre", ButtonBar.ButtonData.OK_DONE);
+                ButtonType btB = new ButtonType("Bispo", ButtonBar.ButtonData.OK_DONE);
+                ButtonType btN = new ButtonType("Cavalo",ButtonBar.ButtonData.OK_DONE);
+                dlg.getDialogPane().getButtonTypes()
+                        .setAll(btQ, btR, btB, btN, ButtonType.CANCEL);
+
+                dlg.setResultConverter(btn -> {
+                    if (btn == btQ) return EPieceType.QUEEN;
+                    if (btn == btR) return EPieceType.ROOK;
+                    if (btn == btB) return EPieceType.BISHOP;
+                    if (btn == btN) return EPieceType.KNIGHT;
+                    return null;
+                });
+
+                EPieceType choice = dlg.showAndWait().orElse(null);
+                if (choice != null)
+                    facade.promotePawn(new Position(pp.col(), pp.row()), choice);
+
+                boardCanvas.draw();
+            }
+
+            if (facade.gameOver()) {
+                boardCanvas.setDisable(true);
+
+                String winner = facade.getWinner().orElse("Ninguém");
+                String state = facade.getState() != null ? facade.getState().toString() : "Desconhecido";
+
+                Alert end = new Alert(Alert.AlertType.INFORMATION,
+                        "Fim de jogo!\nVencedor: " + winner +
+                                "\nEstado: " + state);
+                end.setHeaderText(null);
+                end.showAndWait();
+            }
+
+        } catch (Exception e) {
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText("Error drawing board.");
+            alert.setContentText("Error trying to draw the board.\n" + e.getMessage());
+            alert.showAndWait();
+        }
+    }
+
+    public void boardEnabled(boolean on) {
+        boardCanvas.setDisable(!on);
     }
 }

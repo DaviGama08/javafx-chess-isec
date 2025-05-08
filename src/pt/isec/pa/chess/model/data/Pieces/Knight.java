@@ -13,23 +13,21 @@ public class Knight extends Piece {
 
     @Override
     public boolean move(int destColumn, int destRow, GameBoard board){
-        if(isValidMove(destColumn, destRow, board)){
-            Piece destPiece = board.getPiece(destColumn, destRow);
+        if (!isValidMove(destColumn, destRow, board))
+            return false;
 
-            if (destPiece != null && destPiece.isWhiteTeam == this.isWhiteTeam) {
+        Piece destPiece = board.getPiece(destColumn, destRow);
+        if (destPiece != null) {
+            if (destPiece.isWhiteTeam == this.isWhiteTeam) {
                 board.setLastError("Destino ocupado pela própria equipa: " + destColumn + destRow);
                 return false;
             }
-
-            if (destPiece != null)
-                board.removePiece(destPiece);
-
-            board.board.get(pos.getRow()).set(pos.getCol(), null);
-            board.movePieceOnBoard(this, destColumn, destRow);
-            updatePosition(destColumn, destRow);
-            return true;
+            board.removePiece(destPiece);
         }
-        return false;
+
+        board.movePieceOnBoard(this, destColumn, destRow);
+        updatePosition(destColumn, destRow);
+        return true;
     }
 
     @Override

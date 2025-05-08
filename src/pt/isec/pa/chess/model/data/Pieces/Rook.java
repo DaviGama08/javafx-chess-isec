@@ -28,8 +28,6 @@ public class Rook extends Piece {
 
             if (destPiece != null)
                 board.removePiece(destPiece);
-
-            board.board.get(pos.getRow()).set(pos.getCol(), null);
             board.movePieceOnBoard(this, destColumn, destRow);
             updatePosition(destColumn, destRow);
             return true;

@@ -46,15 +46,13 @@ public class King extends Piece{
                 //atualizar posição da torre
                 board.movePieceOnBoard(rook, rookDestCol, pos.getRow());
                 board.movePieceOnBoard(this, destColumn, destRow);
-                board.board.get(pos.getRow()).set(pos.getCol(), null);
-                board.movePieceOnBoard(this, destColumn, destRow);
                 updatePosition(destColumn, destRow);
+
                 return true;
             }
 
             if (destPiece != null)
                 board.removePiece(destPiece);
-            board.board.get(pos.getRow()).set(pos.getCol(), null);
             board.movePieceOnBoard(this, destColumn, destRow);
             updatePosition(destColumn, destRow);
             return true;

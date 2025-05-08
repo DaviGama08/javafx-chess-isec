@@ -13,7 +13,7 @@ public class MainJFX extends Application {
     @Override
     public void start(Stage stage){
         RootPane root = new RootPane(facade);
-        Scene scene = new Scene(root,600,400);
+        Scene scene = new Scene(root,590,590);
         stage.setScene(scene);
         stage.setTitle("ChessGame");
         stage.show();

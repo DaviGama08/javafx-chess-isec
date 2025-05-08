@@ -14,12 +14,14 @@ public class ChessGame implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-    private final GameBoard board;
-    EChessState currentState;
+    private GameBoard board;
+    private EChessState currentState;
 
     private Player whitePlayer;
     private Player blackPlayer;
     private boolean isWhiteTurn;
+    private boolean isGameOver;
+    private Player winner;
 
     public ChessGame() {
         board = new GameBoard();
@@ -29,15 +31,45 @@ public class ChessGame implements Serializable {
         this.whitePlayer = new Player(nameWhite, ETeamColor.WHITE_TEAM);
         this.blackPlayer = new Player(nameBlack, ETeamColor.BLACK_TEAM);
         this.isWhiteTurn = true;
+        this.isGameOver = false;
+        this.winner = null;
     }
 
-
     public boolean movePiece(int sourceColumn, int sourceRow, int destColumn, int destRow) {
+        if (!isStarted() || isGameOver)
+            return false;
+
+        Piece mover = board.getPiece(sourceColumn, sourceRow);
+        if (mover == null || mover.isWhiteTeam() != isWhiteTurn) {
+            return false;
+        }
+
         boolean success = board.movePiece(sourceColumn, sourceRow, destColumn, destRow);
-        if(success){
+        if (success) {
+            // Verifica se o adversário ainda tem o rei em jogo
+            boolean kingExists = board.doesKingExist(!isWhiteTurn); // verifica o REI da equipa adversária
+            if (!kingExists) {
+                isGameOver = true;
+                winner = isWhiteTurn ? whitePlayer : blackPlayer;
+            }
             isWhiteTurn = !isWhiteTurn;
         }
         return success;
+    }
+
+    public PlayerData getWinner() {
+        if (winner == null) return null;
+        return new PlayerData(winner.getName(), winner.getTeam(), winner.getScore());
+    }
+
+    public boolean gameOver() {
+        if(isGameOver){
+            if(winner.getTeam() == ETeamColor.WHITE_TEAM)
+                currentState = EChessState.CHECKMATE_WHITE_WON;
+            else
+                currentState = EChessState.CHECKMATE_BLACK_WON;
+        }
+        return isGameOver;
     }
 
     public EChessState getState() {
@@ -49,9 +81,15 @@ public class ChessGame implements Serializable {
         return new PlayerData(current.getName(), current.getTeam(), current.getScore());
     }
 
-    public boolean gameOver() {
-        //TODO
-        return false;
+    public void newGame(String nameWhite, String nameBlack) {
+        this.board = new GameBoard();
+        setPlayers(nameWhite, nameBlack);
+        this.isGameOver = false;
+        this.winner = null;
+        currentState = EChessState.IN_PROGRESS;
+    }
+
+    public boolean isStarted() {return whitePlayer != null && blackPlayer != null;
     }
 
     public boolean exportGameState() {
@@ -141,7 +179,7 @@ public class ChessGame implements Serializable {
         return true;
     }
 
-    public Position validatePawnPromotion(){
+    public PositionData validatePawnPromotion(){
         return board.validatePawnPromotion();
     }
 
@@ -149,7 +187,11 @@ public class ChessGame implements Serializable {
         return board.promotePawn(pos, newType);
     }
 
-    public GameBoard getBoard() {
-        return board;
+    public GameBoard getBoard() throws CloneNotSupportedException {
+        return board.clone();
+    }
+    public String getPlayerName(ETeamColor team) {
+        return team == ETeamColor.WHITE_TEAM ? whitePlayer.getName()
+                : blackPlayer.getName();
     }
 }
