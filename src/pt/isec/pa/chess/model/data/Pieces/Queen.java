@@ -1,7 +1,6 @@
 package pt.isec.pa.chess.model.data.Pieces;
 
 import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
-import pt.isec.pa.chess.model.data.IPlayable;
 
 public class Queen extends Piece {
     public Queen(boolean isWhiteTeam, int column, int row) {
@@ -21,14 +20,13 @@ public class Queen extends Piece {
                 return false;
             }
 
-            if(!board.isPathClear(pos.getCol(), pos.getRow(), destRow, destColumn)){
+            if(!board.isPathClear(pos.getCol(), pos.getRow(), destColumn, destRow)){
                 board.setLastError("Caminho bloqueado para a Rainha");
                 return false;
             }
 
             if (destPiece != null)
                 board.removePiece(destPiece);
-            board.movePieceOnBoard(this, destColumn, destRow);
             updatePosition(destColumn, destRow);
             return true;
         }
@@ -46,6 +44,9 @@ public class Queen extends Piece {
         boolean isDiagonal = (colDiff == rowDiff && colDiff > 0);
         boolean isLinear = (colDiff > 0 && rowDiff == 0) || (colDiff == 0 && rowDiff > 0);
 
-        return isDiagonal || isLinear;
+        if (!isDiagonal && !isLinear)
+            return false;
+
+        return board.isPathClear(this.pos.getCol(), this.pos.getRow(), newColumn, newRow);
     }
 }

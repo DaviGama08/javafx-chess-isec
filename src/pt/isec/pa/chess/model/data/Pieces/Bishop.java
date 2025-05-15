@@ -1,7 +1,6 @@
 package pt.isec.pa.chess.model.data.Pieces;
 
 import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
-import pt.isec.pa.chess.model.data.IPlayable;
 
 public class Bishop extends Piece{
     public Bishop(boolean isWhiteTeam, int column, int row) {
@@ -30,7 +29,6 @@ public class Bishop extends Piece{
             if (destPiece != null)
                 board.removePiece(destPiece);
 
-            board.movePieceOnBoard(this, destColumn, destRow);
             updatePosition(destColumn, destRow);
             return true;
         }
@@ -45,7 +43,9 @@ public class Bishop extends Piece{
         int colDiff = Math.abs(newColumn - this.pos.getCol());
         int rowDiff = Math.abs(newRow - this.pos.getRow());
 
-        return colDiff == rowDiff && colDiff != 0;
+        if(colDiff != rowDiff)
+            return false;
+        return board.isPathClear(this.pos.getCol(), this.pos.getRow(), newColumn, newRow);
     }
 
 }

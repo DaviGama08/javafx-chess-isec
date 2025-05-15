@@ -1,7 +1,6 @@
 package pt.isec.pa.chess.model.data.Pieces;
 
 import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
-import pt.isec.pa.chess.model.data.IPlayable;
 
 public class Knight extends Piece {
     public Knight(boolean isWhiteTeam, int column, int row) {
@@ -25,7 +24,6 @@ public class Knight extends Piece {
             board.removePiece(destPiece);
         }
 
-        board.movePieceOnBoard(this, destColumn, destRow);
         updatePosition(destColumn, destRow);
         return true;
     }

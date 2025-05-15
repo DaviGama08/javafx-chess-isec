@@ -1,7 +1,6 @@
 package pt.isec.pa.chess.model.data.Pieces;
 
 import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
-import pt.isec.pa.chess.model.data.IPlayable;
 
 public class King extends Piece{
     public King(boolean isWhiteTeam, int column, int row) {
@@ -27,7 +26,7 @@ public class King extends Piece{
                 int rookSourceCol = isKingside ? 7 : 0;
                 int rookDestCol = isKingside ? destColumn - 1 : destColumn + 1;
 
-                if (board.isPathClear(pos.getRow(), pos.getCol(), pos.getRow(), rookSourceCol)){
+                if (board.isPathClear(pos.getCol(), pos.getRow(), rookSourceCol, pos.getRow())){
                     board.setLastError("Caminho bloqueado para o Rei");
                     return false;
                 }
@@ -43,9 +42,7 @@ public class King extends Piece{
                     return false;
                 }
 
-                //atualizar posição da torre
-                board.movePieceOnBoard(rook, rookDestCol, pos.getRow());
-                board.movePieceOnBoard(this, destColumn, destRow);
+                rook.updatePosition(rookDestCol, pos.getRow());
                 updatePosition(destColumn, destRow);
 
                 return true;
@@ -53,7 +50,6 @@ public class King extends Piece{
 
             if (destPiece != null)
                 board.removePiece(destPiece);
-            board.movePieceOnBoard(this, destColumn, destRow);
             updatePosition(destColumn, destRow);
             return true;
         }
@@ -71,8 +67,21 @@ public class King extends Piece{
         if ((colDiff <= 1 && rowDiff <= 1) && !(colDiff == 0 && rowDiff == 0))
             return true;
 
-        return !wasMoved && colDiff == 2 && rowDiff == 0;
+        if (!wasMoved && rowDiff == 0 && colDiff == 2) {
+            boolean isKingside = newColumn > pos.getCol();
+            int rookCol = isKingside ? 7 : 0;
 
+            Piece rook = board.getPiece(rookCol, pos.getRow());
+            if (!(rook instanceof Rook) || rook.isWhiteTeam != this.isWhiteTeam || rook.wasMoved)
+                return false;
+
+            if (!board.isPathClear(pos.getCol(), pos.getRow(), rookCol, pos.getRow()))
+                return false;
+
+            return true;
+        }
+
+        return false;
     }
 
 }

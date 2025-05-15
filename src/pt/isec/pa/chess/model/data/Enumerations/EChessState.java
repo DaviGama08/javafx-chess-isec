@@ -2,6 +2,7 @@ package pt.isec.pa.chess.model.data.Enumerations;
 
 //TODO: Provisory ENUM UNTIL IMPLEMENT FSM
 public enum EChessState {
+    NOT_STARTED,
     IN_PROGRESS,
     CHECK,
     CHECKMATE,

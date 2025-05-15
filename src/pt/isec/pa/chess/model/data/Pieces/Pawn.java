@@ -1,6 +1,5 @@
 package pt.isec.pa.chess.model.data.Pieces;
 
-
 import pt.isec.pa.chess.model.data.Enumerations.EPawnMoved;
 import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
 
@@ -29,7 +28,7 @@ public class Pawn extends Piece{
                 return false;
             }
 
-            board.movePieceOnBoard(this, destColumn, destRow);
+            updatePosition(destColumn, destRow);
             return true;
         }
         return false;
@@ -37,30 +36,50 @@ public class Pawn extends Piece{
 
     @Override
     public boolean isValidMove(int newColumn, int newRow, GameBoard board) {
-        if(board == null)
+        if (board == null || board.isInvalidPosition(newColumn, newRow))
             return false;
 
         int direction = this.isWhiteTeam ? 1 : -1;
-        switch (pawnStatus){
+        int col = pos.getCol();
+        int row = pos.getRow();
+
+        int colDiff = newColumn - col;
+        int rowDiff = newRow - row;
+
+        Piece target = board.getPiece(newColumn, newRow);
+
+        switch (pawnStatus) {
             case NEVER -> {
-                if( pos.getCol() == newColumn && (pos.getRow() + direction == newRow || pos.getRow() + (2 * direction) == newRow) ){
+                if (colDiff == 0 && rowDiff == direction && target == null)
                     return true;
-                }
-                else if( (pos.getCol() + 1 == newColumn || pos.getCol() - 1 == newColumn) && pos.getRow() + direction == newRow ){
+
+                if (colDiff == 0 && rowDiff == 2 * direction && target == null &&
+                        board.getPiece(col, row + direction) == null)
                     return true;
-                }
             }
-            case ONCE,MORETHANONCE ->{
-                if( pos.getCol() == newColumn && pos.getRow() + direction == newRow){
+            case ONCE, MORETHANONCE -> {
+                if (colDiff == 0 && rowDiff == direction && target == null)
                     return true;
-                }
-                else if( (pos.getCol() + 1 == newColumn || pos.getCol() - 1 == newColumn) && pos.getRow() + direction == newRow){
-                    return true;
-                }
             }
         }
+
+        if (Math.abs(colDiff) == 1 && rowDiff == direction && target != null && target.isWhiteTeam != this.isWhiteTeam)
+            return true;
+
+        if (Math.abs(colDiff) == 1 && rowDiff == direction && target == null) {
+            int expectedRow = isWhiteTeam ? 4 : 3;
+            if (row == expectedRow) {
+                Piece side = board.getPiece(newColumn, row);
+                if (side instanceof Pawn sidePawn &&
+                        sidePawn.isWhiteTeam != this.isWhiteTeam &&
+                        sidePawn.getPawnStatus() == EPawnMoved.ONCE)
+                    return true;
+            }
+        }
+
         return false;
     }
+
 
     @Override
     public void updatePosition(int newColumn, int newRow){
@@ -87,7 +106,6 @@ public class Pawn extends Piece{
                 if(destPiece.isWhiteTeam == this.isWhiteTeam)
                     return false;
                 board.removePiece(destPiece);
-                board.movePieceOnBoard(this, destCol, destRow);
                 updatePosition(destCol, destRow);
                 return true;
             }
@@ -101,7 +119,7 @@ public class Pawn extends Piece{
                         sidePawn.isWhiteTeam != this.isWhiteTeam &&
                         sidePawn.getPawnStatus() == EPawnMoved.ONCE) {
                     board.removePiece(sidePawn);
-                    board.movePieceOnBoard(this, destCol, destRow);
+                    updatePosition(destCol, destRow);
                     return true;
                 }
             }

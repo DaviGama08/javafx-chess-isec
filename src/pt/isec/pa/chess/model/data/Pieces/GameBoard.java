@@ -21,7 +21,6 @@ public class GameBoard implements Serializable, Cloneable {
     public final List<Piece> pieces = new ArrayList<>();
 
     public GameBoard() {
-        pieces.clear();
         initializePieces();
     }
 
@@ -56,17 +55,8 @@ public class GameBoard implements Serializable, Cloneable {
 
     }
 
-    public void createPiece(EPieceType type, boolean isWhiteTeam, int col, int row) {
-        if (isInvalidPosition(col, row)) {
-            lastError = "Invalid position for piece creation: " + col + "," + row;
-            return;
-        }
-        if (getPiece(col, row) != null) {
-            lastError = "Position already occupied: " + col + "," + row;
-            return;
-        }
-        pieces.add(PieceFactory.createPiece(type, isWhiteTeam, col, row));
-    }
+    public int getNumRows() { return NUM_ROWS; }
+    public int getNumCols() { return NUM_COLS; }
 
     public boolean isInvalidPosition(int col, int row) {
         return row < 0 || row >= NUM_ROWS || col < 0 || col >= NUM_COLS;
@@ -79,6 +69,17 @@ public class GameBoard implements Serializable, Cloneable {
         for (Piece p : pieces) {
             if (p.getColumn()==col && p.getRow()==row)
                 return p;
+        }
+        return null;
+    }
+
+    public Piece getPieceAt(Position pos) {
+        if (isInvalidPosition(pos.getCol(), pos.getRow()))
+            return null;
+
+        for (Piece p : pieces) {
+            if (p.getColumn()==pos.getCol() && p.getRow()== pos.getRow())
+                return p.clone();
         }
         return null;
     }
@@ -136,10 +137,6 @@ public class GameBoard implements Serializable, Cloneable {
         pieces.remove(piece);
     }
 
-    public void movePieceOnBoard(Piece piece, int newColumn, int newRow) {
-        piece.updatePosition(newColumn, newRow);
-    }
-
     public String getLastError(){
         return lastError;
     }
@@ -165,29 +162,76 @@ public class GameBoard implements Serializable, Cloneable {
         return null;
     }
 
-    public boolean promotePawn(Position pos, EPieceType newType) {
+    public void promotePawn(Position pos, EPieceType newType) {
         if (isInvalidPosition(pos.getCol(), pos.getRow())) {
-            return false;
+            return;
         }
 
         Piece pawn = getPiece(pos.getCol(), pos.getRow());
         if (pawn == null || pawn.getEPieceType() != EPieceType.PAWN) {
-            return false;
+            return;
         }
 
         removePiece(pawn);
-
         Piece nova = PieceFactory.createPiece(newType, pawn.isWhiteTeam(), pos.getCol(), pos.getRow());
 
         addPiece(nova);
+    }
+
+    public List<Position> getValidMoves(Position pos, boolean whiteTurn) {
+
+        Piece p = getPiece(pos.getCol(), pos.getRow());
+        if (p == null || p.isWhiteTeam() != whiteTurn)
+            return List.of();
+
+        List<Position> raw   = p.getValidMoves(this);
+        List<Position> legal = new ArrayList<>();
+
+        for (Position dest : raw) {
+            GameBoard clone = this.clone();
+            clone.movePiece(p.getColumn(), p.getRow(),
+                    dest.getCol(), dest.getRow());
+
+            if (!clone.isKingInCheck(whiteTurn))
+                legal.add(dest);
+        }
+        return legal;
+    }
+
+    public boolean isCheckMate(boolean whiteTurn) {
+        if (!isKingInCheck(whiteTurn))
+            return false;
+        for (Piece p : pieces) {
+            if (p.isWhiteTeam() != whiteTurn)
+                continue;
+
+            List<Position> validMoves = getValidMoves(new Position(p.getColumn(), p.getRow()), whiteTurn);
+            if (!validMoves.isEmpty())
+                return false;
+        }
         return true;
     }
 
-    public boolean doesKingExist(boolean isWhiteTeam) {
-        for (Piece p : pieces) {
-            if (p.getEPieceType() == EPieceType.KING && p.isWhiteTeam() == isWhiteTeam) {
-                return true;
-            }
+    public boolean isKingInCheck(boolean whiteKing) {
+        Piece king = pieces.stream()
+                .filter(p -> p.getEPieceType() == EPieceType.KING
+                        && p.isWhiteTeam() == whiteKing)
+                .findFirst()
+                .orElse(null);
+
+        if (king == null) {
+            return true;
+        }
+
+        Position kingPos = new Position(king.getColumn(), king.getRow());
+
+        for (Piece enemy : pieces) {
+            if (enemy.isWhiteTeam() == whiteKing)
+                continue;
+
+            for (Position dest : enemy.getValidMoves(this))
+                if (dest.equals(kingPos))
+                    return true;
         }
         return false;
     }
@@ -201,6 +245,4 @@ public class GameBoard implements Serializable, Cloneable {
         return copy;
     }
 
-    public int getNumRows() { return NUM_ROWS; }
-    public int getNumCols() { return NUM_COLS; }
 }

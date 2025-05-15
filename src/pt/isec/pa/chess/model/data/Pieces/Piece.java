@@ -1,6 +1,8 @@
 package pt.isec.pa.chess.model.data.Pieces;
 
 import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
+import pt.isec.pa.chess.model.data.Enumerations.ETeamColor;
+import pt.isec.pa.chess.model.data.Factories.PieceFactory;
 import pt.isec.pa.chess.model.data.IPlayable;
 import pt.isec.pa.chess.model.data.Game.Position;
 
@@ -9,7 +11,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-abstract public class Piece implements IPlayable, Serializable {
+abstract public class Piece implements IPlayable, Serializable, Cloneable {
     @Serial
     private static final long serialVersionUID = 1L;
     protected char type;
@@ -47,7 +49,7 @@ abstract public class Piece implements IPlayable, Serializable {
         return (char) ('a' + index);
     }
 
-    // ####### Getters #######
+    // Getters
     public int getColumn() {
         return pos.getCol();
     }
@@ -56,6 +58,9 @@ abstract public class Piece implements IPlayable, Serializable {
     }
     public boolean isWhiteTeam() {return isWhiteTeam;}
     public EPieceType getEPieceType() {return ePieceType;}
+    public ETeamColor getTeam(){
+        return isWhiteTeam? ETeamColor.WHITE_TEAM:ETeamColor.BLACK_TEAM;
+    }
 
     public List<Position> getValidMoves(GameBoard board){
         List<Position> validMoves = new ArrayList<>();
@@ -63,6 +68,9 @@ abstract public class Piece implements IPlayable, Serializable {
         for(int row = 0; row < GameBoard.NUM_ROWS; row++){
             for(int col = 0; col < GameBoard.NUM_COLS; col++){
                 if(row == pos.getRow() && col == pos.getCol())
+                    continue;
+                Piece dest = board.getPiece(col, row);
+                if (dest != null && dest.isWhiteTeam == this.isWhiteTeam)
                     continue;
                 if(isValidMove(col, row, board))
                     validMoves.add(new Position(col, row));
@@ -74,5 +82,17 @@ abstract public class Piece implements IPlayable, Serializable {
     public abstract boolean isValidMove(int newColumn, int newRow, GameBoard board);
 
     public abstract boolean move(int destColumn, int destRow, GameBoard board);
+
+    @Override
+    public Piece clone() {
+        try {
+            Piece copy = (Piece) super.clone();
+            copy.pos = new Position(pos.getCol(), pos.getRow()); // cópia da posição
+            return copy;
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
+    }
+
 
 }

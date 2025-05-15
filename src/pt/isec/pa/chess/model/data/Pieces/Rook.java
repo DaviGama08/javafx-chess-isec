@@ -1,7 +1,6 @@
 package pt.isec.pa.chess.model.data.Pieces;
 
 import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
-import pt.isec.pa.chess.model.data.IPlayable;
 
 public class Rook extends Piece {
     public Rook(boolean isWhiteTeam, int column, int row) {
@@ -21,14 +20,13 @@ public class Rook extends Piece {
                 return false;
             }
 
-            if(!board.isPathClear(pos.getCol(), pos.getRow(), destRow, destColumn)){
+            if(!board.isPathClear(pos.getCol(), pos.getRow(), destColumn, destRow)){
                 board.setLastError("Caminho bloqueado para a Torre");
                 return false;
             }
 
             if (destPiece != null)
                 board.removePiece(destPiece);
-            board.movePieceOnBoard(this, destColumn, destRow);
             updatePosition(destColumn, destRow);
             return true;
         }
@@ -43,9 +41,10 @@ public class Rook extends Piece {
         int colDiff = Math.abs(destColumn - this.pos.getCol());
         int rowDiff = Math.abs(destRow - this.pos.getRow());
 
-        boolean isHorizontal = (rowDiff == 0 && colDiff > 0);
-        boolean isVertical = (colDiff == 0 && rowDiff > 0);
+        boolean isLinear = (rowDiff == 0 && colDiff > 0) || (colDiff == 0 && rowDiff > 0);
+        if (!isLinear)
+            return false;
 
-        return isHorizontal || isVertical;
+        return board.isPathClear(this.pos.getCol(), this.pos.getRow(), destColumn, destRow);
     }
 }
