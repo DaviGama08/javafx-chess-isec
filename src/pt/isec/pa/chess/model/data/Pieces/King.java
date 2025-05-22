@@ -26,7 +26,7 @@ public class King extends Piece{
                 int rookSourceCol = isKingside ? 7 : 0;
                 int rookDestCol = isKingside ? destColumn - 1 : destColumn + 1;
 
-                if (board.isPathClear(pos.getCol(), pos.getRow(), rookSourceCol, pos.getRow())){
+                if (!board.isPathClear(pos.getCol(), pos.getRow(), rookSourceCol, pos.getRow())){
                     board.setLastError("Caminho bloqueado para o Rei");
                     return false;
                 }

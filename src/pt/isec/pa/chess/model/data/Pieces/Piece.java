@@ -2,9 +2,8 @@ package pt.isec.pa.chess.model.data.Pieces;
 
 import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
 import pt.isec.pa.chess.model.data.Enumerations.ETeamColor;
-import pt.isec.pa.chess.model.data.Factories.PieceFactory;
 import pt.isec.pa.chess.model.data.IPlayable;
-import pt.isec.pa.chess.model.data.Game.Position;
+import pt.isec.pa.chess.model.data.game.Position;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -87,12 +86,10 @@ abstract public class Piece implements IPlayable, Serializable, Cloneable {
     public Piece clone() {
         try {
             Piece copy = (Piece) super.clone();
-            copy.pos = new Position(pos.getCol(), pos.getRow()); // cópia da posição
+            copy.pos = new Position(pos.getCol(), pos.getRow());
             return copy;
         } catch (CloneNotSupportedException e) {
             return null;
         }
     }
-
-
 }

@@ -3,9 +3,8 @@ package pt.isec.pa.chess.ui;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import pt.isec.pa.chess.model.data.Game.ChessGameManager;
-import pt.isec.pa.chess.ui.controllers.LogWindow;
-import pt.isec.pa.chess.ui.controllers.RootPane;
+import pt.isec.pa.chess.model.ChessGameManager;
+import pt.isec.pa.chess.ui.alerts.AlertManager;
 
 public class MainJFX extends Application {
     private final ChessGameManager facade;
@@ -14,13 +13,14 @@ public class MainJFX extends Application {
     public void start(Stage stage){
         stage.setMinWidth(450);
         stage.setMinHeight(450);
-        RootPane root = new RootPane(facade);
+        AlertManager alertManager = new AlertManager();
+        RootPane root = new RootPane(facade, alertManager);
         Scene scene = new Scene(root,590,590);
         stage.setScene(scene);
         stage.setTitle("ChessGame");
         stage.show();
 
-        LogWindow logWindow = new LogWindow();
+        LogWindow logWindow = new LogWindow(facade);
         logWindow.setX(stage.getX() + stage.getWidth());
         logWindow.setY(stage.getY());
         logWindow.show();

@@ -70,10 +70,9 @@ public class Pawn extends Piece{
             int expectedRow = isWhiteTeam ? 4 : 3;
             if (row == expectedRow) {
                 Piece side = board.getPiece(newColumn, row);
-                if (side instanceof Pawn sidePawn &&
+                return side instanceof Pawn sidePawn &&
                         sidePawn.isWhiteTeam != this.isWhiteTeam &&
-                        sidePawn.getPawnStatus() == EPawnMoved.ONCE)
-                    return true;
+                        sidePawn.getPawnStatus() == EPawnMoved.ONCE;
             }
         }
 
@@ -88,7 +87,7 @@ public class Pawn extends Piece{
         this.pawnStatus = pawnStatus == EPawnMoved.NEVER ? EPawnMoved.ONCE : EPawnMoved.MORETHANONCE;
         this.wasMoved = true;
     }
-
+    /*
     private boolean checkPawnMove(Piece destPiece, int srcCol, int sourceRow, int destCol, int destRow, GameBoard board) {
         int colDiff = destCol - srcCol;
         int rowDiff = destRow - sourceRow;
@@ -128,8 +127,56 @@ public class Pawn extends Piece{
         }
         return false;
     }
+    * */
+    private boolean checkPawnMove(Piece destPiece,
+                                  int srcCol, int srcRow,
+                                  int destCol, int destRow,
+                                  GameBoard board) {
+        int colDiff   = destCol - srcCol;
+        int rowDiff   = destRow - srcRow;
+        int direction = this.isWhiteTeam ? 1 : -1;
 
+        if (colDiff == 0) {
+            if (destPiece != null)
+                return false;
+            if (rowDiff == direction)
+                return true;
+            if (rowDiff == 2 * direction
+                    && !wasMoved
+                    && board.getPiece(srcCol, srcRow + direction) == null)
+                return true;
+            return false;
+        }
+
+        if (Math.abs(colDiff) == 1 && rowDiff == direction) {
+            if (destPiece != null) {
+                if (destPiece.isWhiteTeam == this.isWhiteTeam)
+                    return false;
+                board.removePiece(destPiece);
+                updatePosition(destCol, destRow);
+                return true;
+            }
+            int baseline = isWhiteTeam ? 4 : 3;
+            if (srcRow == baseline) {
+                Piece side = board.getPiece(destCol, srcRow);
+                if (side instanceof Pawn sidePawn
+                        && sidePawn.isWhiteTeam != this.isWhiteTeam
+                        && sidePawn.getPawnStatus() == EPawnMoved.ONCE) {
+                    board.removePiece(sidePawn);
+                    updatePosition(destCol, destRow);
+                    return true;
+                }
+            }
+            return false;
+        }
+        return false;
+    }
     public EPawnMoved getPawnStatus(){
         return pawnStatus;
+    }
+    public Pawn clone() {
+        Pawn copy = new Pawn(isWhiteTeam, pos.getCol(), pos.getRow(), wasMoved);
+        copy.pawnStatus = this.pawnStatus;
+        return copy;
     }
 }

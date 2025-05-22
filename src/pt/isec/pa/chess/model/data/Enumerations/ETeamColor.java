@@ -1,6 +1,6 @@
 package pt.isec.pa.chess.model.data.Enumerations;
 public enum ETeamColor {
-    //EMPTY,
+    EMPTY,
     WHITE_TEAM,
     BLACK_TEAM
 }

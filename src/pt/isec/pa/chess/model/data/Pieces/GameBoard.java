@@ -2,8 +2,8 @@ package pt.isec.pa.chess.model.data.Pieces;
 
 import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
 import pt.isec.pa.chess.model.data.Factories.PieceFactory;
-import pt.isec.pa.chess.model.data.Game.Position;
-import pt.isec.pa.chess.model.data.Game.PositionData;
+import pt.isec.pa.chess.model.data.game.Position;
+import pt.isec.pa.chess.model.data.game.PositionData;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -239,9 +239,10 @@ public class GameBoard implements Serializable, Cloneable {
     @Override public GameBoard clone() {
         GameBoard copy = new GameBoard();
         copy.pieces.clear();
-        for (Piece p : pieces)
-            copy.pieces.add(PieceFactory.createPiece(
-                    p.getEPieceType(), p.isWhiteTeam(), p.getColumn(), p.getRow()));
+        for (Piece p : this.pieces) {
+            copy.pieces.add(p.clone());
+        }
+        copy.lastError = this.lastError;
         return copy;
     }
 
