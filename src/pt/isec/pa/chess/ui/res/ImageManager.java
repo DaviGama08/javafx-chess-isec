@@ -10,20 +10,10 @@ public class ImageManager{
     public static Image getImage(String filename) {
         Image image= images.get(filename);
         if(image== null)
-            try(InputStream is= ImageManager.class.getResourceAsStream("images/pieces/"+filename)) {
+            try(InputStream is= ImageManager.class.getClassLoader().getResourceAsStream("images/pieces/"+filename)) {
                 image= new Image(is);
                 images.put(filename,image);
             } catch(Exception e) { return null; }
         return image;
     }
-    public static Image getExternalImage(String filename) {
-        Image image= images.get(filename);
-        if(image== null)
-            try{
-                image= new Image(filename);
-                images.put(filename,image);
-            } catch(Exception e) { return null; }
-        return image;
-    }
-    public static void purgeImage(String filename) { images.remove(filename); }
 }

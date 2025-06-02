@@ -16,9 +16,7 @@ public class GameBoard implements Serializable, Cloneable {
     public static final int NUM_ROWS = 8;
     public static final int NUM_COLS = 8;
 
-    private String lastError = "";
-
-    public final List<Piece> pieces = new ArrayList<>();
+    private final List<Piece> pieces = new ArrayList<>();
 
     public GameBoard() {
         initializePieces();
@@ -26,6 +24,7 @@ public class GameBoard implements Serializable, Cloneable {
 
     public void initializePieces() {
         // White Pieces
+
         pieces.add(PieceFactory.createPiece(EPieceType.ROOK,   true, 0, 0));
         pieces.add(PieceFactory.createPiece(EPieceType.KNIGHT, true, 1, 0));
         pieces.add(PieceFactory.createPiece(EPieceType.BISHOP, true, 2, 0));
@@ -103,46 +102,29 @@ public class GameBoard implements Serializable, Cloneable {
     }
 
     public boolean movePiece(int sourceColumn, int sourceRow, int destColumn, int destRow) {
-        if (isInvalidPosition(sourceColumn, sourceRow)) {
-            lastError = "Source Position Invalid: " + sourceColumn + " " + sourceRow;
-            return false;
-        }
+        if (isInvalidPosition(sourceColumn, sourceRow)) return false;
 
-        if (isInvalidPosition(destColumn, destRow)) {
-            lastError = "Destiny Position Invalid: " + destColumn + " " + destRow;
-            return false;
-        }
+        if (isInvalidPosition(destColumn, destRow)) return false;
 
         Piece piece = getPiece(sourceColumn, sourceRow);
-        if (piece == null) {
-            lastError = "Nenhuma peça na posição de origem: " + sourceColumn + sourceRow;
-            return false;
-        }
-        if (!piece.move(destColumn, destRow, this)){
-            lastError = "Movimento inválido da peça";
-            return false;
-        }
-        return true;
+        if (piece == null)return false;
+
+        return piece.move(destColumn, destRow, this);
     }
 
     public void addPiece(Piece p) {
-        if (getPiece(p.getColumn(),p.getRow())!=null) {
-            lastError = "Posição já ocupada";
-            return;
-        }
+        if (getPiece(p.getColumn(),p.getRow())!=null) return;
+
         pieces.add(p);
+    }
+
+    public void addPiece(EPieceType type, boolean isWhite, int col, int row){
+        if (getPiece(col, row) == null)
+            pieces.add(PieceFactory.createPiece(type,   isWhite, col, row));
     }
 
     public void removePiece(Piece piece) {
         pieces.remove(piece);
-    }
-
-    public String getLastError(){
-        return lastError;
-    }
-
-    public void setLastError(String e){
-        this.lastError = e;
     }
 
     public PositionData validatePawnPromotion() {
@@ -198,6 +180,54 @@ public class GameBoard implements Serializable, Cloneable {
         return legal;
     }
 
+    public boolean isStalemate(boolean whiteTurn) {
+        if (isKingInCheck(whiteTurn))
+            return false;
+        for (Piece p : pieces) {
+            if (p.isWhiteTeam() != whiteTurn)
+                continue;
+            List<Position> moves = getValidMoves(new Position(p.getColumn(), p.getRow()), whiteTurn);
+            if (!moves.isEmpty())
+                return false;
+        }
+        return true;
+    }
+
+    public boolean isInsufficientMaterial() {
+        int queens  = 0, rooks = 0, pawns = 0;
+        int bishopsWhite = 0, bishopsBlack = 0;
+        int knightsWhite = 0, knightsBlack = 0;
+
+        for (Piece p : pieces) {
+            switch (p.getEPieceType()) {
+                case QUEEN  -> queens++;
+                case ROOK   -> rooks++;
+                case PAWN   -> pawns++;
+                case BISHOP -> {
+                    if (p.isWhiteTeam()) bishopsWhite++; else bishopsBlack++;
+                }
+                case KNIGHT -> {
+                    if (p.isWhiteTeam()) knightsWhite++; else knightsBlack++;
+                }
+                default -> {}
+            }
+            if (queens > 0 || rooks > 0 || pawns > 0)
+                return false;
+        }
+
+        int bishops = bishopsWhite + bishopsBlack;
+        int knights = knightsWhite + knightsBlack;
+
+        if (bishops == 0 && knights == 0)
+            return true;
+        if (bishops == 1 && knights == 0)
+            return true;
+        if (knights == 1 && bishops == 0)
+            return true;
+
+        return false;
+    }
+
     public boolean isCheckMate(boolean whiteTurn) {
         if (!isKingInCheck(whiteTurn))
             return false;
@@ -242,8 +272,10 @@ public class GameBoard implements Serializable, Cloneable {
         for (Piece p : this.pieces) {
             copy.pieces.add(p.clone());
         }
-        copy.lastError = this.lastError;
         return copy;
     }
 
+    public void clearBoard(){
+        pieces.clear();
+    }
 }

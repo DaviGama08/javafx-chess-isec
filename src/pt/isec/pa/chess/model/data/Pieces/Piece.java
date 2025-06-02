@@ -78,10 +78,6 @@ abstract public class Piece implements IPlayable, Serializable, Cloneable {
         return validMoves;
     }
 
-    public abstract boolean isValidMove(int newColumn, int newRow, GameBoard board);
-
-    public abstract boolean move(int destColumn, int destRow, GameBoard board);
-
     @Override
     public Piece clone() {
         try {

@@ -8,11 +8,9 @@ import java.io.Serializable;
 public class Player implements Cloneable, Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
-    private final String name;
+    private String name;
     private final ETeamColor team;
-    private int plays;
     private int score;
-    private int wins;
 
     public Player(String name, ETeamColor team) {
         this.name = name;
@@ -21,13 +19,11 @@ public class Player implements Cloneable, Serializable {
 
     public String getName() {return name;}
     public ETeamColor getTeam(){return team;}
-    public int getPlays() {return plays;}
     public int getScore() {return score;}
-    public int getWins() {return wins;}
 
-    public void setPlays(int plays) {this.plays = plays;}
-    public void setScore(int score) {this.score = score;}
-    public void setWins(int wins) {this.wins = wins;}
+    public void setName(String name){
+        this.name = name;
+    }
 
     @Override
     public Player clone() {

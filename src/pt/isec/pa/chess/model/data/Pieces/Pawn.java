@@ -18,15 +18,11 @@ public class Pawn extends Piece{
         if(isValidMove(destColumn, destRow, board)){
             Piece destPiece = board.getPiece(destColumn, destRow);
 
-            if (destPiece != null && destPiece.isWhiteTeam == this.isWhiteTeam) {
-                board.setLastError("Destino ocupado pela própria equipa: " + destColumn + destRow);
-                return false;
-            }
+            if (destPiece != null && destPiece.isWhiteTeam == this.isWhiteTeam) return false;
 
-            if (!checkPawnMove(destPiece, pos.getCol(), pos.getRow(), destColumn, destRow, board)){
-                board.setLastError("Caminho bloqueado para o Peão");
-                return false;
-            }
+
+            if (!checkPawnMove(destPiece, pos.getCol(), pos.getRow(), destColumn, destRow, board)) return false;
+
 
             updatePosition(destColumn, destRow);
             return true;
@@ -87,47 +83,6 @@ public class Pawn extends Piece{
         this.pawnStatus = pawnStatus == EPawnMoved.NEVER ? EPawnMoved.ONCE : EPawnMoved.MORETHANONCE;
         this.wasMoved = true;
     }
-    /*
-    private boolean checkPawnMove(Piece destPiece, int srcCol, int sourceRow, int destCol, int destRow, GameBoard board) {
-        int colDiff = destCol - srcCol;
-        int rowDiff = destRow - sourceRow;
-        int direction = this.isWhiteTeam ? 1 : -1;
-        if (colDiff == 0) {
-            if (destPiece != null) return false;
-
-            if (rowDiff == 2 * direction)
-                return board.getPiece(srcCol, sourceRow + direction) == null;
-            return true;
-        }
-
-        if (Math.abs(colDiff) == 1 && rowDiff == direction) {
-            if (destPiece != null) {
-                if(destPiece.isWhiteTeam == this.isWhiteTeam)
-                    return false;
-                board.removePiece(destPiece);
-                updatePosition(destCol, destRow);
-                return true;
-            }
-
-            // Check en passant move
-            int expectedRow = this.isWhiteTeam ? 4 : 3;
-            if (sourceRow == expectedRow) {
-                Piece sidePiece = board.getPiece(destCol, sourceRow);
-
-                if (sidePiece instanceof Pawn sidePawn &&
-                        sidePawn.isWhiteTeam != this.isWhiteTeam &&
-                        sidePawn.getPawnStatus() == EPawnMoved.ONCE) {
-                    board.removePiece(sidePawn);
-                    updatePosition(destCol, destRow);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-        return false;
-    }
-    * */
     private boolean checkPawnMove(Piece destPiece,
                                   int srcCol, int srcRow,
                                   int destCol, int destRow,

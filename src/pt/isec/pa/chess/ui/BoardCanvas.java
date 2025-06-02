@@ -1,4 +1,5 @@
 package pt.isec.pa.chess.ui;
+import javafx.application.Platform;
 import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
@@ -22,25 +23,22 @@ import pt.isec.pa.chess.model.ChessGameManager;
 import pt.isec.pa.chess.model.data.Enumerations.EPieceType;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 import java.util.*;
 
-public class BoardCanvas extends Canvas implements PropertyChangeListener {
+public class BoardCanvas extends Canvas {
     private static final double MARGIN = 40;
     private final ChessGameManager facade;
-    private final AlertManager alertManager;
     private static LinearGradient gradient;
     private final Map<String, Image> pieceImages = new HashMap<>();
     private boolean learningMode;
+    private boolean editMode;
 
     private int selCol = -1;
     private int selRow = -1;
     private List<int[]> highlights = new ArrayList<>();
 
-    public BoardCanvas(ChessGameManager facade, AlertManager alertManager) {
+    public BoardCanvas(ChessGameManager facade) {
         this.facade = facade;
-        this.alertManager = alertManager;
-        facade.addPropertyChangeListener(ChessGameManager.PROP_BOARD_CHANGED, this);
 
         createViews();
         registerHandlers();
@@ -60,44 +58,16 @@ public class BoardCanvas extends Canvas implements PropertyChangeListener {
 
     public void registerHandlers(){
         setOnMouseClicked(this::handleClick);
+        facade.addPropertyChangeListener(ChessGameManager.PROP_BOARD_CHANGED, this::handleBoardChange);
+        facade.addPropertyChangeListener(ChessGameManager.PROP_GAME_STARTED, this::handleNewGame);
+        facade.addPropertyChangeListener(ChessGameManager.PROP_UNDO_PERFORMED, this::onUndoPerformed);
+        facade.addPropertyChangeListener(ChessGameManager.PROP_REDO_PERFORMED, this::onRedoPerformed);
+        facade.addPropertyChangeListener(ChessGameManager.PROP_GAME_OVER, this::handleQuitGame);
+        facade.addPropertyChangeListener(ChessGameManager.PROP_LEARNING_MODE_CHANGED, this::handleLearningModeChanged);
+        facade.addPropertyChangeListener(ChessGameManager.PROP_EDIT_MODE, this::handleEditModeChanged);
+
     }
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        try{
-            draw();
 
-            String playerName = facade.getPlayerName(facade.isWhiteTurn());
-            if (playerName.isEmpty())
-                return;
-
-            int[] pp = facade.validatePawnPromotion();
-            if (pp != null) {
-                Dialog<EPieceType> dlg = new Dialog<>();
-                dlg.setTitle("Promoção de Peão");
-                dlg.setHeaderText("Escolha a peça para promoção:");
-
-                ButtonType btQ = new ButtonType("Dama",  ButtonBar.ButtonData.OK_DONE);
-                ButtonType btR = new ButtonType("Torre", ButtonBar.ButtonData.OK_DONE);
-                ButtonType btB = new ButtonType("Bispo", ButtonBar.ButtonData.OK_DONE);
-                ButtonType btN = new ButtonType("Cavalo",ButtonBar.ButtonData.OK_DONE);
-                dlg.getDialogPane().getButtonTypes().setAll(btQ, btR, btB, btN);
-
-                dlg.setResultConverter(btn -> {
-                    if (btn == btQ) return EPieceType.QUEEN;
-                    if (btn == btR) return EPieceType.ROOK;
-                    if (btn == btB) return EPieceType.BISHOP;
-                    if (btn == btN) return EPieceType.KNIGHT;
-                    return null;
-                });
-
-                dlg.showAndWait().ifPresent(choice -> facade.promotePawn(pp[0],pp[1], choice));
-
-                draw();
-            }
-        } catch (Exception e) {
-            alertManager.launchAlertBox(Alert.AlertType.ERROR, "Erro", "Erro ao desenhar tabuleiro.",e.getMessage());
-        }
-    }
     public void updateSize(double paneW, double paneH) {
         double side = Math.min(paneW, paneH);
 
@@ -114,12 +84,12 @@ public class BoardCanvas extends Canvas implements PropertyChangeListener {
         int cols = facade.getBoard().getNumCols();
         int rows = facade.getBoard().getNumRows();
 
-        double w = getWidth();
         double h = getHeight();
+        double w = getWidth();
         double s = Math.min(w - 2 * MARGIN, h - 2 * MARGIN);
-        double offsetX = (w - s) / 2;
-        double offsetY = (h - s) / 2;
         double cell = s / cols;
+        double offsetY = (h - s) / 2;
+        double offsetX = (w - s) / 2;
 
         double x = e.getX() - offsetX;
         double y = e.getY() - offsetY;
@@ -148,6 +118,8 @@ public class BoardCanvas extends Canvas implements PropertyChangeListener {
     }
 
     public void draw() {
+        if(facade.getBoard() == null)
+            return;
         int cols = facade.getBoard().getNumCols();
         int rows = facade.getBoard().getNumRows();
         GraphicsContext g = getGraphicsContext2D();
@@ -257,14 +229,81 @@ public class BoardCanvas extends Canvas implements PropertyChangeListener {
         draw();
     }
 
+    //----------------------- Menu Handles -----------------
+
+    public void handleNewGame(PropertyChangeEvent evt){
+        this.setDisable(false);
+        Platform.runLater(this::draw);
+        clearHighlights();
+        draw();
+    }
+
+    public void handleBoardChange(PropertyChangeEvent evt) {
+        try{
+            draw();
+
+            String playerName = facade.getPlayerName(facade.isWhiteTurn());
+            if (playerName.isEmpty())
+                return;
+
+            int[] pp = facade.validatePawnPromotion();
+            if (pp != null) {
+                Dialog<EPieceType> dlg = new Dialog<>();
+                dlg.setTitle("Promoção de Peão");
+                dlg.setHeaderText("Escolha a peça para promoção:");
+
+                ButtonType btQ = new ButtonType("Dama",  ButtonBar.ButtonData.OK_DONE);
+                ButtonType btR = new ButtonType("Torre", ButtonBar.ButtonData.OK_DONE);
+                ButtonType btB = new ButtonType("Bispo", ButtonBar.ButtonData.OK_DONE);
+                ButtonType btN = new ButtonType("Cavalo",ButtonBar.ButtonData.OK_DONE);
+                dlg.getDialogPane().getButtonTypes().setAll(btQ, btR, btB, btN);
+
+                dlg.setResultConverter(btn -> {
+                    if (btn == btQ) return EPieceType.QUEEN;
+                    if (btn == btR) return EPieceType.ROOK;
+                    if (btn == btB) return EPieceType.BISHOP;
+                    if (btn == btN) return EPieceType.KNIGHT;
+                    return null;
+                });
+
+                dlg.showAndWait().ifPresent(choice -> facade.promotePawn(pp[0],pp[1], choice));
+
+                draw();
+            }
+        } catch (Exception e) {
+            AlertManager.getInstance().launchAlertBox(Alert.AlertType.ERROR, "Erro", "Erro ao desenhar tabuleiro.",e.getMessage());
+        }
+    }
+
+    private void handleQuitGame(PropertyChangeEvent evt){
+        setDisable(true);
+        clearHighlights();
+        setSelected(-1, -1);
+    }
+
+    private void handleLearningModeChanged(PropertyChangeEvent evt){
+        this.learningMode = (boolean) evt.getNewValue();
+        clearHighlights();
+        draw();
+    }
+
+    private void handleEditModeChanged(PropertyChangeEvent evt) {
+        this.editMode = (boolean) evt.getNewValue();
+        if(editMode){
+            clearHighlights();
+            draw();
+        }
+        else{
+            setDisable(true);
+            clearHighlights();
+            setSelected(-1, -1);
+        }
+    }
+
+
     // ---------------------- HELPERS INTERNOS --------------
     public void clearHighlights() {
         highlights.clear();
-    }
-
-    public void setHighlights(List <int[]> moves) {
-        this.highlights = (moves != null) ? moves : new ArrayList<>();
-        draw();
     }
 
     public void setSelected(int col, int row) {
@@ -273,16 +312,50 @@ public class BoardCanvas extends Canvas implements PropertyChangeListener {
         draw();
     }
 
-    public void setLearningMode(boolean learningMode){
-        this.learningMode = learningMode;
-    }
-
-    public boolean getLearningMode(){
-        return this.learningMode;
-    }
-
-
     private void handleBoardClick(int col, int row) {
+        if (editMode) {
+            List<ButtonType> options;
+            if (facade.hasPiece(col, row)) {
+                options = List.of(
+                        new ButtonType("Editar peça",   ButtonBar.ButtonData.APPLY),
+                        new ButtonType("Remover peça",  ButtonBar.ButtonData.NO)
+                );
+            } else {
+                options = List.of(
+                        new ButtonType("Adicionar peça", ButtonBar.ButtonData.YES)
+                );
+            }
+
+            Dialog<ButtonType> dlg = new Dialog<>();
+            dlg.setTitle("Edit Mode");
+            dlg.setHeaderText("Casa " + (char)('a' + col) + (row + 1));
+            dlg.getDialogPane().getButtonTypes().setAll(options);
+
+            dlg.showAndWait().ifPresent(bt -> {
+                String action = bt.getText();
+                switch (action) {
+                    case "Remover peça" -> {
+                        if (facade.hasPiece(col, row))
+                            if(!facade.removePiece(col, row)){
+                                AlertManager.getInstance()
+                                        .launchAlertBox(Alert.AlertType.ERROR,
+                                                "Erro","Erro ao remover a peça",
+                                                "Não foi possível remover a peça.");
+                            }
+
+                    }
+                    case "Editar peça" -> {
+                        if (facade.hasPiece(col, row)) {
+                            addPiece(col, row, true);
+                        }
+                    }
+                    case "Adicionar peça" -> addPiece(col, row, false);
+
+                }
+                draw();
+            });
+            return;
+        }
         if (selCol == -1) {
             if (facade.availableMoveWithoutSelecedPiece(col, row)) return;
             setSelected(col, row);
@@ -320,6 +393,71 @@ public class BoardCanvas extends Canvas implements PropertyChangeListener {
             draw();
         }
     }
+
+    private void addPiece(int col, int row, boolean withRemove) {
+        Dialog<Boolean> colorDlg = new Dialog<>();
+        colorDlg.setTitle("Adicionar peça");
+        colorDlg.setHeaderText("Selecione a cor da peça:");
+        colorDlg.getDialogPane().getButtonTypes().setAll(
+                new ButtonType("Branca", ButtonBar.ButtonData.YES),
+                new ButtonType("Preta",  ButtonBar.ButtonData.NO),
+                ButtonType.CANCEL
+        );
+        colorDlg.setResultConverter(btn -> {
+            if (btn.getButtonData() == ButtonBar.ButtonData.YES) return true;
+            if (btn.getButtonData() == ButtonBar.ButtonData.NO)  return false;
+            return null;
+        });
+
+        Optional<Boolean> optIsWhite = colorDlg.showAndWait();
+        if (optIsWhite.isEmpty())
+            return;
+        boolean isWhite = optIsWhite.get();
+
+        Dialog<EPieceType> typeDlg = new Dialog<>();
+        typeDlg.setTitle("Adicionar peça");
+        typeDlg.setHeaderText("Escolha o tipo de peça:");
+        typeDlg.getDialogPane().getButtonTypes().setAll(
+                new ButtonType("Peão",   ButtonBar.ButtonData.OK_DONE),
+                new ButtonType("Torre",  ButtonBar.ButtonData.OK_DONE),
+                new ButtonType("Cavalo", ButtonBar.ButtonData.OK_DONE),
+                new ButtonType("Bispo",  ButtonBar.ButtonData.OK_DONE),
+                new ButtonType("Dama",   ButtonBar.ButtonData.OK_DONE),
+                new ButtonType("Rei",    ButtonBar.ButtonData.OK_DONE),
+                ButtonType.CANCEL
+        );
+
+        typeDlg.setResultConverter(btn -> {
+            if (btn == null || btn.getButtonData() == ButtonBar.ButtonData.CANCEL_CLOSE) return null;
+            return switch (btn.getText()) {
+                case "Peão"   -> EPieceType.PAWN;
+                case "Torre"  -> EPieceType.ROOK;
+                case "Cavalo" -> EPieceType.KNIGHT;
+                case "Bispo"  -> EPieceType.BISHOP;
+                case "Dama"   -> EPieceType.QUEEN;
+                case "Rei"    -> EPieceType.KING;
+                default       -> null;
+            };
+        });
+
+        Optional<EPieceType> optType = typeDlg.showAndWait();
+        if (optType.isEmpty())
+            return;
+        EPieceType type = optType.get();
+
+        if (withRemove) {
+            facade.removePiece(col, row);
+        }
+
+        boolean success = facade.addPiece(type, isWhite, col, row);
+        if (!success) {
+            AlertManager.getInstance()
+                    .launchAlertBox(Alert.AlertType.ERROR,
+                            "Erro",
+                            "Não foi possível criar a peça:"," posição inválida ou já ocupada.");
+        }
+    }
+
     private void playMoveAudioSequence(boolean captured, int toCol, int toRow) {
         EPieceType type = facade.getPieceTypeAt(toCol, toRow);
 
@@ -350,4 +488,21 @@ public class BoardCanvas extends Canvas implements PropertyChangeListener {
 
         SoundManager.playSequence(seq);
     }
+
+    private void onUndoPerformed(PropertyChangeEvent evt) {
+        Platform.runLater(() -> {
+            clearSelection();
+            clearHighlights();
+            draw();
+        });
+    }
+
+    private void onRedoPerformed(PropertyChangeEvent evt) {
+        Platform.runLater(() -> {
+            clearSelection();
+            clearHighlights();
+            draw();
+        });
+    }
+
 }

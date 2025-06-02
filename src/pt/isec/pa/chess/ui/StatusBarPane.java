@@ -8,22 +8,16 @@ import javafx.scene.control.Label;
 import pt.isec.pa.chess.model.ChessGameManager;
 
 import java.beans.PropertyChangeEvent;
-import java.beans.PropertyChangeListener;
 
-public class StatusBarPane extends HBox implements PropertyChangeListener {
+public class StatusBarPane extends HBox  {
     private final ChessGameManager facade;
-    private final PlayerInfoPane whiteBottomPane;
-    private final PlayerInfoPane blackTopPane;
     private final Label lblTurn = new Label("Turno: –");
 
-    public StatusBarPane(ChessGameManager facade, PlayerInfoPane whiteBottomPane, PlayerInfoPane blackTopPane) {
+    public StatusBarPane(ChessGameManager facade) {
         super(20);
         this.facade = facade;
-        this.whiteBottomPane = whiteBottomPane;
-        this.blackTopPane = blackTopPane;
         createViews();
         registerHandlers();
-        facade.addPropertyChangeListener(ChessGameManager.PROP_TURN_CHANGED, this);
     }
 
     public void createViews(){
@@ -34,16 +28,15 @@ public class StatusBarPane extends HBox implements PropertyChangeListener {
     }
 
     public void registerHandlers(){
+        facade.addPropertyChangeListener(ChessGameManager.PROP_TURN_CHANGED, this::handleTurnChanged);
+        facade.addPropertyChangeListener(ChessGameManager.PROP_GAME_STARTED, this::handleNemGame);
     }
     public void setTurn(String playerName, String playerTeam) {
         if (!playerName.isEmpty())
             lblTurn.setText("Turno: " + playerName + " (" + playerTeam + ")");
     }
 
-    @Override
-    public void propertyChange(PropertyChangeEvent evt) {
-        whiteBottomPane.setPlayerInfo(facade.getPlayerName(true), true);
-        blackTopPane.setPlayerInfo(facade.getPlayerName(false), false);
+    private void handleTurnChanged(PropertyChangeEvent evt){
         if(!facade.isEmptyTurn()) {
             boolean isWhiteTurn = facade.isWhiteTurn();
             String playerName = facade.getPlayerName(isWhiteTurn);
@@ -51,4 +44,9 @@ public class StatusBarPane extends HBox implements PropertyChangeListener {
             setTurn(playerName, playerTeam);
         }
     }
+
+    private void handleNemGame(PropertyChangeEvent evt){
+        setTurn(facade.getPlayerName(true), "brancas");
+    }
+
 }

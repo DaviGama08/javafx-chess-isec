@@ -19,7 +19,7 @@ public class IntroPane extends VBox {
         Label lblProjeto = new Label("Jogo de Xadrez");
         lblProjeto.setStyle("-fx-font-size: 20px; -fx-font-style: italic;");
 
-        ImageView image = new ImageView(ImageManager.getImage("isec.jpg"));
+        ImageView image = new ImageView(ImageManager.getImage("isec.png"));
         image.setFitWidth(200);
         image.setPreserveRatio(true);
 

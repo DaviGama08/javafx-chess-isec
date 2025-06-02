@@ -16,15 +16,11 @@ public class Bishop extends Piece{
 
             Piece destPiece = board.getPiece(destColumn, destRow);
 
-            if (destPiece != null && destPiece.isWhiteTeam == this.isWhiteTeam) {
-                board.setLastError("Destino ocupado pela própria equipa: " + destColumn + destRow);
-                return false;
-            }
+            if (destPiece != null && destPiece.isWhiteTeam == this.isWhiteTeam) return false;
 
-            if(!board.isPathClear(pos.getCol(), pos.getRow(), destColumn, destRow)){
-                board.setLastError("Caminho bloqueado para o Bispo");
-                return false;
-            }
+
+            if(!board.isPathClear(pos.getCol(), pos.getRow(), destColumn, destRow)) return false;
+
 
             if (destPiece != null)
                 board.removePiece(destPiece);

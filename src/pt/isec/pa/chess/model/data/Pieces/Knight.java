@@ -17,10 +17,8 @@ public class Knight extends Piece {
 
         Piece destPiece = board.getPiece(destColumn, destRow);
         if (destPiece != null) {
-            if (destPiece.isWhiteTeam == this.isWhiteTeam) {
-                board.setLastError("Destino ocupado pela própria equipa: " + destColumn + destRow);
-                return false;
-            }
+            if (destPiece.isWhiteTeam == this.isWhiteTeam) return false;
+
             board.removePiece(destPiece);
         }
 

@@ -1,8 +1,5 @@
 package pt.isec.pa.chess.model.memento;
 
-import pt.isec.pa.chess.model.memento.Interfaces.IMemento;
-import pt.isec.pa.chess.model.memento.Interfaces.IOriginator;
-
 import java.util.ArrayDeque;
 import java.util.Deque;
 

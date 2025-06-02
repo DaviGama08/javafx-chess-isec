@@ -15,10 +15,8 @@ public class King extends Piece{
 
             Piece destPiece = board.getPiece(destColumn, destRow);
 
-            if (destPiece != null && destPiece.isWhiteTeam == this.isWhiteTeam) {
-                board.setLastError("Destino ocupado pela própria equipa: " + destColumn + destRow);
-                return false;
-            }
+            if (destPiece != null && destPiece.isWhiteTeam == this.isWhiteTeam) return false;
+
 
             if (Math.abs(destColumn - pos.getCol()) == 2) {
                 boolean isKingside = destColumn > pos.getCol();
@@ -26,21 +24,15 @@ public class King extends Piece{
                 int rookSourceCol = isKingside ? 7 : 0;
                 int rookDestCol = isKingside ? destColumn - 1 : destColumn + 1;
 
-                if (!board.isPathClear(pos.getCol(), pos.getRow(), rookSourceCol, pos.getRow())){
-                    board.setLastError("Caminho bloqueado para o Rei");
-                    return false;
-                }
+                if (!board.isPathClear(pos.getCol(), pos.getRow(), rookSourceCol, pos.getRow())) return false;
+
 
                 Piece rook = board.getPiece(rookSourceCol, pos.getRow());
-                if (!(rook instanceof Rook)){
-                    board.setLastError("O roque só pode acontecer entre o Rei e uma Torre");
-                    return false;
-                }
+                if (!(rook instanceof Rook)) return false;
 
-                if(rook.wasMoved){
-                    board.setLastError("A torre já se moveu. Impossível fazer o roque.");
-                    return false;
-                }
+
+                if(rook.wasMoved) return false;
+
 
                 rook.updatePosition(rookDestCol, pos.getRow());
                 updatePosition(destColumn, destRow);

@@ -1,3 +1,0 @@
-WHITE_TEAM,
-Ra0*,Nb0 ,Bc0 ,Qd0 ,Ke0*,Bf0 ,Ng0 ,Rh0*,Pa1 ,Pb1 ,Pc1 ,Pd1 ,Pf1 ,Pg1 ,Ph1 ,Pe3 ,
-pd4 ,pa6 ,pb6 ,pc6 ,pe6 ,pf6 ,pg6 ,ph6 ,ra7*,nb7 ,bc7 ,qd7 ,ke7*,bf7 ,ng7 ,rh7*
