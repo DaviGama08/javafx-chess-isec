@@ -1,32 +1,38 @@
-### IntelliJ IDEA ###
+# IntelliJ IDEA / JetBrains local workspace files
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Maven and Java build outputs
+target/
 out/
-!**/src/main/**/out/
-!**/src/test/**/out/
-
-### Eclipse ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
 bin/
-!**/src/main/**/bin/
-!**/src/test/**/bin/
+build/
+*.class
+*.jar
+*.war
+*.ear
 
-### NetBeans ###
-/nbproject/private/
-/nbbuild/
-/dist/
-/nbdist/
-/.nb-gradle/
+# Test and runtime logs
+*.log
+hs_err_pid*.log
+replay_pid*.log
 
-### VS Code ###
+# Local secrets and private configuration, if added later
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*.jks
+*.keystore
+
+# Editor and operating-system files
 .vscode/
-
-### Mac OS ###
+*.swp
+*~
 .DS_Store
-# Project exclude paths
-
-/target
+Thumbs.db
