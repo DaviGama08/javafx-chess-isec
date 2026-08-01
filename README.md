@@ -44,7 +44,7 @@ The application supports:
 - Draw by insufficient material;
 - Pawn promotion;
 - Castling;
-- En passant implementation under additional validation.
+- En passant with an immediate one-move capture window.
 
 ### Learning Mode
 
@@ -92,6 +92,8 @@ The application provides two persistence formats.
 
 Binary serialization stores a complete game state that can later be reopened.
 
+`.dat` files are treated as untrusted input: loading applies an `ObjectInputFilter`, size/depth limits and a class allowlist. Compatibility still depends on the serialized classes and `serialVersionUID` values, so only open saves from sources you trust.
+
 #### Text board files
 
 ```text
@@ -115,7 +117,7 @@ The current version allows logs to be viewed and cleared during execution.
 
 ### Multimedia
 
-The interface supports:
+The public build uses Unicode chess symbols and therefore does not depend on third-party piece images. Optional local multimedia can provide:
 
 - Piece images;
 - Movement sound sequences;
@@ -124,7 +126,7 @@ The interface supports:
 - Promotion sounds;
 - Sound activation and deactivation.
 
-Only resources with confirmed redistribution rights should be included in public builds.
+The former image and audio collection had no recorded provenance and is intentionally not distributed. Missing optional sounds are skipped. Add local resources only after confirming redistribution rights.
 
 ## Architecture
 
@@ -287,10 +289,7 @@ src/
 │   │           ├── alerts/
 │   │           ├── res/
 │   │           └── services/
-│   └── resources/
-│       ├── images/
-│       │   └── pieces/
-│       └── sounds/
+│   └── resources/                 # optional, local-only licensed media
 └── test/
     └── java/
         └── pt/isec/pa/chess/
@@ -375,6 +374,11 @@ The current model tests cover:
 - Checkmate;
 - Stalemate;
 - Draw by insufficient material.
+- Castling, including attacked transit squares;
+- Immediate and expired en passant windows;
+- Promotion type validation;
+- Invalid-move undo history and redo restoration;
+- Binary save round trips and deserialization filtering.
 
 Run:
 
@@ -382,26 +386,28 @@ Run:
 mvn test
 ```
 
+The current suite contains 18 deterministic tests and does not launch JavaFX. GitHub Actions runs `mvn clean verify` on Windows and Linux; the workflow does not start the GUI or use secrets.
+
 Additional tests are planned for special moves, persistence and movement history.
 
 ## Current Limitations
 
-- En passant requires additional edge-case validation;
 - There is no computer-controlled opponent;
 - There is no online multiplayer;
 - Draw by repetition is not implemented;
 - The fifty-move rule is not implemented;
 - Player clocks are not implemented;
 - Log export is not implemented;
-- Automated testing currently focuses mainly on `GameBoard`;
 - The binary save format depends on compatible Java classes;
-- Multimedia resources must have verified redistribution licences.
+- Java object serialization remains a legacy compatibility format despite the input filter;
+- Optional multimedia is not included until its provenance and redistribution licence are verified;
+- Automated UI and accessibility tests are not implemented.
 
 ## Potential Improvements
 
 Future development could include:
 
-- Complete en passant test coverage;
+- Additional edge-case coverage for special moves;
 - Threefold-repetition detection;
 - Fifty-move-rule detection;
 - Player clocks;
@@ -433,8 +439,8 @@ The project focused on:
 ## Contributors
 
 - **Davi Gama** — [@DaviGama08](https://github.com/DaviGama08)
-- **Miguel Francisco Pires Lopes** — add GitHub profile
-- **Ruben Apolinário Almeida** — add GitHub profile
+- **Miguel Francisco Pires Lopes**
+- **Ruben Apolinário Almeida**
 
 ## Licence
 
