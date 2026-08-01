@@ -167,4 +167,65 @@ class GameBoardTest {
 
         assertTrue(board.isInsufficientMaterial(), "Rei + bispo vs rei deve ser empate por material");
     }
+
+    @Test
+    @DisplayName("Castling moves both king and rook when the route is safe")
+    void castlingMovesKingAndRook() {
+        board.addPiece(EPieceType.KING, true, 4, 0);
+        board.addPiece(EPieceType.ROOK, true, 7, 0);
+
+        assertTrue(board.movePiece(4, 0, 6, 0));
+        assertEquals(EPieceType.KING, board.getPiece(6, 0).getEPieceType());
+        assertEquals(EPieceType.ROOK, board.getPiece(5, 0).getEPieceType());
+        assertNull(board.getPiece(7, 0));
+    }
+
+    @Test
+    @DisplayName("Castling cannot cross an attacked square")
+    void castlingThroughCheckIsRejected() {
+        board.addPiece(EPieceType.KING, true, 4, 0);
+        board.addPiece(EPieceType.ROOK, true, 7, 0);
+        board.addPiece(EPieceType.ROOK, false, 5, 7);
+
+        assertFalse(board.movePiece(4, 0, 6, 0));
+        assertEquals(EPieceType.KING, board.getPiece(4, 0).getEPieceType());
+        assertEquals(EPieceType.ROOK, board.getPiece(7, 0).getEPieceType());
+    }
+
+    @Test
+    @DisplayName("En passant captures only immediately after a two-square pawn move")
+    void enPassantCapturesImmediately() {
+        board.addPiece(EPieceType.PAWN, true, 4, 4);
+        board.addPiece(EPieceType.PAWN, false, 5, 6);
+
+        assertTrue(board.movePiece(5, 6, 5, 4));
+        assertTrue(board.movePiece(4, 4, 5, 5));
+        assertNull(board.getPiece(5, 4));
+        assertTrue(board.getPiece(5, 5).isWhiteTeam());
+    }
+
+    @Test
+    @DisplayName("En passant expires after an intervening move")
+    void enPassantWindowExpires() {
+        board.addPiece(EPieceType.PAWN, true, 4, 4);
+        board.addPiece(EPieceType.PAWN, false, 5, 6);
+        board.addPiece(EPieceType.ROOK, true, 0, 0);
+
+        assertTrue(board.movePiece(5, 6, 5, 4));
+        assertTrue(board.movePiece(0, 0, 0, 1));
+        assertFalse(board.movePiece(4, 4, 5, 5));
+        assertNotNull(board.getPiece(5, 4));
+    }
+
+    @Test
+    @DisplayName("Promotion accepts only standard promotion pieces on the back rank")
+    void promotionValidatesTypeAndRank() {
+        board.addPiece(EPieceType.PAWN, true, 0, 7);
+
+        board.promotePawn(new Position(0, 7), EPieceType.KING);
+        assertEquals(EPieceType.PAWN, board.getPiece(0, 7).getEPieceType());
+
+        board.promotePawn(new Position(0, 7), EPieceType.QUEEN);
+        assertEquals(EPieceType.QUEEN, board.getPiece(0, 7).getEPieceType());
+    }
 }
