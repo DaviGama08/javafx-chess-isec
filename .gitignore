@@ -30,6 +30,11 @@ replay_pid*.log
 *.jks
 *.keystore
 
+# Internal academic reports and locally supplied multimedia
+reports/
+src/main/resources/images/
+src/main/resources/sounds/
+
 # Editor and operating-system files
 .vscode/
 *.swp
