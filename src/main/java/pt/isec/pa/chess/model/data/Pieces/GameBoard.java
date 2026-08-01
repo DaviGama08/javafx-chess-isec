@@ -17,6 +17,10 @@ public class GameBoard implements Serializable, Cloneable {
     public static final int NUM_COLS = 8;
 
     private final List<Piece> pieces = new ArrayList<>();
+    private int enPassantTargetCol = -1;
+    private int enPassantTargetRow = -1;
+    private int enPassantPawnCol = -1;
+    private int enPassantPawnRow = -1;
 
     public GameBoard() {
         initializePieces();
@@ -109,7 +113,78 @@ public class GameBoard implements Serializable, Cloneable {
         Piece piece = getPiece(sourceColumn, sourceRow);
         if (piece == null)return false;
 
-        return piece.move(destColumn, destRow, this);
+        boolean moved = piece.move(destColumn, destRow, this);
+        if (!moved)
+            return false;
+
+        if (piece instanceof Pawn && Math.abs(destRow - sourceRow) == 2) {
+            enPassantTargetCol = destColumn;
+            enPassantTargetRow = (sourceRow + destRow) / 2;
+            enPassantPawnCol = destColumn;
+            enPassantPawnRow = destRow;
+        } else {
+            clearEnPassantWindow();
+        }
+        return true;
+    }
+
+    boolean isEnPassantAvailable(Pawn pawn, int destColumn, int destRow) {
+        if (pawn == null || destColumn != enPassantTargetCol || destRow != enPassantTargetRow)
+            return false;
+
+        Piece adjacent = getPiece(enPassantPawnCol, enPassantPawnRow);
+        return adjacent instanceof Pawn && adjacent.isWhiteTeam() != pawn.isWhiteTeam();
+    }
+
+    boolean canCastle(King king, int destColumn, int destRow) {
+        if (king == null || king.wasMoved || king.getColumn() != 4)
+            return false;
+
+        int homeRow = king.isWhiteTeam() ? 0 : 7;
+        if (king.getRow() != homeRow || destRow != homeRow || (destColumn != 2 && destColumn != 6))
+            return false;
+
+        int rookColumn = destColumn == 6 ? 7 : 0;
+        Piece rook = getPiece(rookColumn, homeRow);
+        if (!(rook instanceof Rook) || rook.isWhiteTeam() != king.isWhiteTeam() || rook.wasMoved)
+            return false;
+        if (!isPathClear(king.getColumn(), homeRow, rookColumn, homeRow))
+            return false;
+
+        boolean attackedByWhite = !king.isWhiteTeam();
+        int intermediateColumn = destColumn == 6 ? 5 : 3;
+        return !isSquareAttacked(king.getColumn(), homeRow, attackedByWhite)
+                && !isSquareAttacked(intermediateColumn, homeRow, attackedByWhite)
+                && !isSquareAttacked(destColumn, homeRow, attackedByWhite);
+    }
+
+    private boolean isSquareAttacked(int column, int row, boolean byWhite) {
+        for (Piece attacker : pieces) {
+            if (attacker.isWhiteTeam() != byWhite)
+                continue;
+
+            int columnDistance = Math.abs(column - attacker.getColumn());
+            int rowDelta = row - attacker.getRow();
+            if (attacker instanceof Pawn) {
+                int direction = attacker.isWhiteTeam() ? 1 : -1;
+                if (columnDistance == 1 && rowDelta == direction)
+                    return true;
+            } else if (attacker instanceof King) {
+                if (columnDistance <= 1 && Math.abs(rowDelta) <= 1
+                        && (columnDistance != 0 || rowDelta != 0))
+                    return true;
+            } else if (attacker.isValidMove(column, row, this)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private void clearEnPassantWindow() {
+        enPassantTargetCol = -1;
+        enPassantTargetRow = -1;
+        enPassantPawnCol = -1;
+        enPassantPawnRow = -1;
     }
 
     public void addPiece(Piece p) {
@@ -145,12 +220,15 @@ public class GameBoard implements Serializable, Cloneable {
     }
 
     public void promotePawn(Position pos, EPieceType newType) {
-        if (isInvalidPosition(pos.getCol(), pos.getRow())) {
+        if (pos == null || newType == null || isInvalidPosition(pos.getCol(), pos.getRow())) {
             return;
         }
 
         Piece pawn = getPiece(pos.getCol(), pos.getRow());
-        if (pawn == null || pawn.getEPieceType() != EPieceType.PAWN) {
+        if (pawn == null || pawn.getEPieceType() != EPieceType.PAWN
+                || (pawn.isWhiteTeam() ? pos.getRow() != 7 : pos.getRow() != 0)
+                || (newType != EPieceType.QUEEN && newType != EPieceType.ROOK
+                && newType != EPieceType.BISHOP && newType != EPieceType.KNIGHT)) {
             return;
         }
 
@@ -272,10 +350,15 @@ public class GameBoard implements Serializable, Cloneable {
         for (Piece p : this.pieces) {
             copy.pieces.add(p.clone());
         }
+        copy.enPassantTargetCol = this.enPassantTargetCol;
+        copy.enPassantTargetRow = this.enPassantTargetRow;
+        copy.enPassantPawnCol = this.enPassantPawnCol;
+        copy.enPassantPawnRow = this.enPassantPawnRow;
         return copy;
     }
 
     public void clearBoard(){
         pieces.clear();
+        clearEnPassantWindow();
     }
 }

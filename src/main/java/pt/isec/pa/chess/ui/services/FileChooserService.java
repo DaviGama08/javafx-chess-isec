@@ -14,7 +14,9 @@ public class FileChooserService {
     public static File showOpenGameDialog(){
         FileChooser fileChooser = new FileChooser();
         fileChooser.setTitle("Abrir Jogo");
-        new FileChooser.ExtensionFilter("Arquivos de Jogo (*.dat)", "*.dat");
+        fileChooser.getExtensionFilters().add(
+                new FileChooser.ExtensionFilter("Arquivos de Jogo (*.dat)", "*.dat")
+        );
         return fileChooser.showOpenDialog(stage);
     }
 

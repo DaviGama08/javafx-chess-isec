@@ -59,19 +59,8 @@ public class King extends Piece{
         if ((colDiff <= 1 && rowDiff <= 1) && !(colDiff == 0 && rowDiff == 0))
             return true;
 
-        if (!wasMoved && rowDiff == 0 && colDiff == 2) {
-            boolean isKingside = newColumn > pos.getCol();
-            int rookCol = isKingside ? 7 : 0;
-
-            Piece rook = board.getPiece(rookCol, pos.getRow());
-            if (!(rook instanceof Rook) || rook.isWhiteTeam != this.isWhiteTeam || rook.wasMoved)
-                return false;
-
-            if (!board.isPathClear(pos.getCol(), pos.getRow(), rookCol, pos.getRow()))
-                return false;
-
-            return true;
-        }
+        if (!wasMoved && rowDiff == 0 && colDiff == 2)
+            return board.canCastle(this, newColumn, newRow);
 
         return false;
     }

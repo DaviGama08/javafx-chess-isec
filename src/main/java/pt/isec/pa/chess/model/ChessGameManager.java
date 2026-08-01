@@ -7,6 +7,7 @@ import pt.isec.pa.chess.model.data.Pieces.GameBoard;
 import pt.isec.pa.chess.model.data.Pieces.Piece;
 import pt.isec.pa.chess.model.data.game.*;
 import pt.isec.pa.chess.model.memento.CareTaker;
+import pt.isec.pa.chess.model.memento.IMemento;
 
 import java.beans.PropertyChangeSupport;
 import java.beans.PropertyChangeListener;
@@ -46,7 +47,7 @@ public class ChessGameManager {
 
     private transient final PropertyChangeSupport pcs = new PropertyChangeSupport(this);
     private ChessGame game;
-    private final CareTaker caretaker;
+    private CareTaker caretaker;
 
     /**
      * Default constructor for ChessGameManager.
@@ -96,8 +97,8 @@ public class ChessGameManager {
     /**
      * Attempts to move a piece from a source position to a destination position.
      * <p>
-     * Before attempting the move, the current game state is saved using the Memento pattern
-     * to support undo functionality. If the move is successful (validated by the ChessGame model),
+     * The current game state is retained only when the move is accepted, so invalid moves do not
+     * create undo entries. If the move is successful (validated by the ChessGame model),
      * it fires appropriate property changes (PROP_BOARD_CHANGED, PROP_TURN_CHANGED).
      * If the move results in a check or checkmate, corresponding events (PROP_CHECK, PROP_GAME_OVER)
      * are also fired. The move is logged via ModelLog.
@@ -109,9 +110,10 @@ public class ChessGameManager {
      * @return true if the piece was moved successfully, false otherwise (e.g., invalid move, puts king in check).
      */
     public boolean movePiece(int sourceColumn, int sourceRow, int destColumn, int destRow){
-        caretaker.save();
+        IMemento beforeMove = game.save();
         boolean moved = game.movePiece(sourceColumn, sourceRow, destColumn, destRow);
         if (moved) {
+            caretaker.save(beforeMove);
             pcs.firePropertyChange(PROP_BOARD_CHANGED, null, game.getBoard());
             pcs.firePropertyChange(PROP_TURN_CHANGED, null, game.getCurrentPlayer());
 
@@ -287,7 +289,6 @@ public class ChessGameManager {
     public void newGame(String nameWhite, String nameBlack) {
         game.newGame(nameWhite, nameBlack);
         caretaker.reset();
-        caretaker.save();
         pcs.firePropertyChange(PROP_GAME_STARTED, null, null);
         pcs.firePropertyChange(PROP_BOARD_CHANGED, null, game.getBoard());
         pcs.firePropertyChange(PROP_TURN_CHANGED, null, game.getCurrentPlayer());
@@ -312,7 +313,7 @@ public class ChessGameManager {
         if (loaded == null) return false;
 
         this.game = loaded;
-        caretaker.reset();
+        this.caretaker = new CareTaker(this.game);
         pcs.firePropertyChange(PROP_GAME_STARTED, null, null);
         pcs.firePropertyChange(PROP_BOARD_CHANGED, null, game.getBoard());
         pcs.firePropertyChange(PROP_TURN_CHANGED, null, game.getCurrentPlayer());

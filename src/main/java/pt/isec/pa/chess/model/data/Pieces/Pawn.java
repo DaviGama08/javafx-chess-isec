@@ -63,13 +63,7 @@ public class Pawn extends Piece{
             return true;
 
         if (Math.abs(colDiff) == 1 && rowDiff == direction && target == null) {
-            int expectedRow = isWhiteTeam ? 4 : 3;
-            if (row == expectedRow) {
-                Piece side = board.getPiece(newColumn, row);
-                return side instanceof Pawn sidePawn &&
-                        sidePawn.isWhiteTeam != this.isWhiteTeam &&
-                        sidePawn.getPawnStatus() == EPawnMoved.ONCE;
-            }
+            return board.isEnPassantAvailable(this, newColumn, newRow);
         }
 
         return false;
@@ -108,19 +102,12 @@ public class Pawn extends Piece{
                 if (destPiece.isWhiteTeam == this.isWhiteTeam)
                     return false;
                 board.removePiece(destPiece);
-                updatePosition(destCol, destRow);
                 return true;
             }
-            int baseline = isWhiteTeam ? 4 : 3;
-            if (srcRow == baseline) {
+            if (board.isEnPassantAvailable(this, destCol, destRow)) {
                 Piece side = board.getPiece(destCol, srcRow);
-                if (side instanceof Pawn sidePawn
-                        && sidePawn.isWhiteTeam != this.isWhiteTeam
-                        && sidePawn.getPawnStatus() == EPawnMoved.ONCE) {
-                    board.removePiece(sidePawn);
-                    updatePosition(destCol, destRow);
-                    return true;
-                }
+                board.removePiece(side);
+                return true;
             }
             return false;
         }

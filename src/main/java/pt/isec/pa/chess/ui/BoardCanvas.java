@@ -196,12 +196,32 @@ public class BoardCanvas extends Canvas {
                 String key = facade.getBoard().getPiece(c, r).getEPieceType().name().toLowerCase() +
                         (facade.getBoard().getPiece(c, r).isWhiteTeam() ? "W" : "B");
                 Image img = pieceImages.get(key);
-                if (img == null) continue;
 
                 double x = offsetX + c * cell + pad;
                 double y = offsetY + (row - 1 - r) * cell + pad;
-                g.drawImage(img, x, y, imgSide, imgSide);
+                if (img != null) {
+                    g.drawImage(img, x, y, imgSide, imgSide);
+                } else {
+                    EPieceType type = facade.getBoard().getPiece(c, r).getEPieceType();
+                    boolean white = facade.getBoard().getPiece(c, r).isWhiteTeam();
+                    g.setFill(Color.BLACK);
+                    g.setFont(Font.font("Serif", cell * .72));
+                    g.setTextAlign(TextAlignment.CENTER);
+                    g.setTextBaseline(VPos.CENTER);
+                    g.fillText(unicodePiece(type, white), x + imgSide / 2, y + imgSide / 2);
+                }
             }
+    }
+
+    private static String unicodePiece(EPieceType type, boolean white) {
+        return switch (type) {
+            case KING -> white ? "♔" : "♚";
+            case QUEEN -> white ? "♕" : "♛";
+            case ROOK -> white ? "♖" : "♜";
+            case BISHOP -> white ? "♗" : "♝";
+            case KNIGHT -> white ? "♘" : "♞";
+            case PAWN -> white ? "♙" : "♟";
+        };
     }
 
     private void highlight(GraphicsContext g, double offsetX, double offsetY, double cell, int row) {

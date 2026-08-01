@@ -15,8 +15,14 @@ public class CareTaker {
     }
 
     public void save() {
+        save(originator.save());
+    }
+
+    public void save(IMemento memento) {
+        if (memento == null)
+            return;
         redoHist.clear();
-        history.push(originator.save());
+        history.push(memento);
     }
 
     public void undo() {
