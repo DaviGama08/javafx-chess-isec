@@ -1,3 +1,7 @@
+> **Academic Project — Instituto Superior de Engenharia de Coimbra (ISEC)**
+>
+> This public repository is a portfolio-ready version. The original academic submission is preserved separately in a private `-isec-archive` repository; later improvements may be present here.
+
 <div align="center">
 
 # JavaFX Chess
@@ -316,8 +320,8 @@ mvn -version
 Clone the repository:
 
 ```bash
-git clone https://github.com/DaviGama08/javafx-chess.git
-cd javafx-chess
+git clone https://github.com/DaviGama08/javafx-chess-isec.git
+cd javafx-chess-isec
 ```
 
 Run the tests:
@@ -433,8 +437,8 @@ The project focused on:
 ## Contributors
 
 - **Davi Gama** — [@DaviGama08](https://github.com/DaviGama08)
-- **Miguel Francisco Pires Lopes** — add GitHub profile
-- **Ruben Apolinário Almeida** — add GitHub profile
+- **Miguel Francisco Pires Lopes**
+- **Ruben Apolinário Almeida**
 
 ## Licence
 
